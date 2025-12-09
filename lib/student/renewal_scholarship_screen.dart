@@ -31,19 +31,22 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
     'studentId': TextEditingController(),
     'contact': TextEditingController(),
     'houseStreet': TextEditingController(),
+    'municipality': TextEditingController(text: 'Majayjay'),
     'course': TextEditingController(),
     'gwa': TextEditingController(),
     'reason': TextEditingController(),
   };
 
-  String? _selectedSemester;
+  int? _applicationId;
   String? _selectedYearLevel;
-  String? _selectedSHSLevel;
   String? _selectedBarangay;
   
   final _images = <String, File?>{
-    'grades': null,
+    'school_id': null,
     'id_picture': null,
+    'birth_cert': null,
+    'grades': null,
+    'cor': null,
   };
 
   bool _isSubmitting = false;
@@ -79,15 +82,29 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
 
       final userResponse = await Supabase.instance.client
           .from('users')
-          .select('first_name, middle_name, last_name')
+          .select('user_id')
           .eq('email', userEmail)
           .single();
+      
+      final userId = userResponse['user_id'] as int;
 
-      setState(() {
-        _controllers['firstName']?.text = userResponse['first_name'] ?? '';
-        _controllers['middleName']?.text = userResponse['middle_name'] ?? '';
-        _controllers['surname']?.text = userResponse['last_name'] ?? '';
-      });
+      final appResponse = await Supabase.instance.client
+          .from('application')
+          .select()
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .maybeSingle();
+
+      if (appResponse != null) {
+        setState(() {
+          _applicationId = appResponse['application_id'];
+          _controllers['firstName']?.text = appResponse['first_name'] ?? '';
+          _controllers['middleName']?.text = appResponse['middle_name'] ?? '';
+          _controllers['surname']?.text = appResponse['last_name'] ?? '';
+          _controllers['houseStreet']?.text = appResponse['address'] ?? '';
+          _selectedBarangay = appResponse['baranggay'];
+        });
+      }
     } catch (e) {
       // Silently fail if user data not found
     }
@@ -148,31 +165,14 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   Future<void> _submitRenewal() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate SHS Level
-    if (_selectedSHSLevel == null) {
+    if (_selectedYearLevel == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your Senior High School level or None for college!'), backgroundColor: Colors.red),
+        const SnackBar(content: Text('Please select your year level!'), backgroundColor: Colors.red),
       );
       return;
     }
 
-    // If college student (None), validate college year level and course
-    if (_selectedSHSLevel == 'None') {
-      if (_selectedYearLevel == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select your college year level!'), backgroundColor: Colors.red),
-        );
-        return;
-      }
-      if (_controllers['course']?.text.isEmpty ?? true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter your course/program!'), backgroundColor: Colors.red),
-        );
-        return;
-      }
-    }
-
-    if (_images['grades'] == null || _images['id_picture'] == null) {
+    if (_images['school_id'] == null || _images['id_picture'] == null || _images['birth_cert'] == null || _images['grades'] == null || _images['cor'] == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please upload all required documents!'), backgroundColor: Colors.red),
       );
@@ -347,51 +347,39 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
                       _buildTextField('firstName', 'First Name', 'Juan', Icons.person, enabled: false),
                       _buildTextField('middleName', 'Middle Name', 'Santos', Icons.person_outline, required: false, enabled: false),
                       _buildTextField('surname', 'Surname', 'Dela Cruz', Icons.person, enabled: false),
-                      Row(
-                        children: [
-                          Expanded(child: _buildTextField('studentId', 'Student ID', '2024-12345', Icons.badge)),
-                          const SizedBox(width: 12),
-                          Expanded(child: _buildTextField('contact', 'Contact Number', '09171234567', Icons.phone, keyboardType: TextInputType.phone, maxLength: 11)),
-                        ],
+                      _buildTextField('studentId', 'Student ID *', '2024-12345', Icons.badge),
+                      _buildTextField('contact', 'Contact Number *', '09171234567', Icons.phone, keyboardType: TextInputType.phone, maxLength: 11),
+                      _buildTextField('houseStreet', 'House No. & Street', 'e.g., 123 Rizal Street', Icons.home, enabled: false),
+                      _buildTextField('municipality', 'Municipality', 'Majayjay', Icons.location_on, enabled: false),
+                      TextFormField(
+                        initialValue: _selectedBarangay ?? '',
+                        enabled: false,
+                        style: const TextStyle(color: Color(0xFF9CA3AF)),
+                        decoration: InputDecoration(
+                          labelText: 'Barangay',
+                          prefixIcon: const Icon(Icons.location_city, color: Color(0xFF9B59B6)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          filled: true,
+                          fillColor: Colors.white,
+                        ),
                       ),
-                      _buildTextField('houseStreet', 'House No. & Street', 'e.g., 123 Rizal Street', Icons.home),
-                      _buildDropdown('Barangay', _barangays, _selectedBarangay, Icons.location_city, (val) => setState(() => _selectedBarangay = val)),
                     ]),
                     const SizedBox(height: 24),
 
                     _buildSection('🎓 Academic Information', [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDropdown('Senior High School Level', _shsLevels, _selectedSHSLevel, Icons.school_outlined, (val) {
-                            setState(() {
-                              _selectedSHSLevel = val;
-                              if (val != 'None') {
-                                _selectedYearLevel = null;
-                                _controllers['course']?.clear();
-                              }
-                            });
-                          }),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 48, top: 4),
-                            child: Text('Note: For Senior High School only. College students select "None"', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
-                          ),
-                        ],
-                      ),
-                      if (_selectedSHSLevel == 'None') ...[
-                        _buildDropdown('College Year Level', _yearLevels, _selectedYearLevel, Icons.stairs, (val) => setState(() => _selectedYearLevel = val)),
-                      ],
-                      if (_selectedSHSLevel == 'None' && _selectedYearLevel != null) ...[
-                        _buildTextField('course', 'Course/Program', 'BS Computer Science', Icons.school),
-                      ],
-                      _buildDropdown('Semester to Renew For', _semesters, _selectedSemester, Icons.calendar_today, (val) => setState(() => _selectedSemester = val)),
-                      _buildTextField('gwa', 'Current GWA/GPA', '1.75', Icons.star, keyboardType: TextInputType.number),
+                      _buildTextField('course', 'Course/Program/Academic *', 'BS Computer Science', Icons.school),
+                      _buildDropdown('Year Level *', ['Grade 11', 'Grade 12', '1st Year', '2nd Year', '3rd Year', '4th Year'], _selectedYearLevel, Icons.stairs, (val) => setState(() => _selectedYearLevel = val)),
+                      _buildTextField('gwa', 'GWA (General Weighted Average) *', '1.75', Icons.star, keyboardType: TextInputType.number),
                     ]),
                     const SizedBox(height: 24),
 
                     _buildSection('📎 Required Documents', [
-                      _buildDocUpload('Latest Grades', 'Upload certificate of grades', 'grades', true),
+                      _buildDocUpload('School ID', 'Upload school ID', 'school_id', true),
                       _buildDocUpload('2x2 ID Picture', 'Recent photo with white background', 'id_picture', true),
+                      _buildDocUpload('Birth Certificate', 'Upload birth certificate', 'birth_cert', true),
+                      _buildDocUpload('Copy of Grades', 'Upload certificate of grades', 'grades', true),
+                      _buildDocUpload('COR (Certificate of Registration)', 'Upload COR', 'cor', true),
                     ]),
                     const SizedBox(height: 24),
 
