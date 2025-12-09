@@ -103,12 +103,19 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.location_city,
-                    size: 40,
-                    color: Colors.blue,
+                  child: ClipOval(
+                    child: Image.asset(
+                      'assets/images/majayjay.jpg',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
