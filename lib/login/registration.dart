@@ -15,6 +15,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _middleNameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
@@ -320,6 +321,35 @@ class _RegistrationPageState extends State<RegistrationPage> {
         ),
         const SizedBox(height: 20),
         TextFormField(
+          controller: _middleNameController,
+          enabled: _isEmailVerified,
+          decoration: InputDecoration(
+            labelText: 'Middle Name',
+            hintText: _isEmailVerified ? 'Enter your middle name' : 'Verify email first',
+            prefixIcon: const Icon(Icons.person_rounded, size: 20),
+            filled: true,
+            fillColor: const Color(0xFFF7FAFC),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFF667EEA), width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+        ),
+        const SizedBox(height: 20),
+        TextFormField(
           controller: _surnameController,
           enabled: _isEmailVerified,
           decoration: InputDecoration(
@@ -537,6 +567,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         await supabase.from('users').insert({
           'email': _emailController.text.trim(),
           'first_name': _firstNameController.text.trim(),
+          'middle_name': _middleNameController.text.trim().isNotEmpty ? _middleNameController.text.trim() : null,
           'last_name': _surnameController.text.trim(),
           'user_type': 'student',
         });
