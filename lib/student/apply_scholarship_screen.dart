@@ -212,46 +212,54 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
         
         // Upload school_id
         if (kIsWeb && _imageBytes['school_id'] != null) {
-          final path = 'scholarship-documents/$studentId/school_id_$timestamp.jpg';
+          final path = '$studentId/school_id_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['school_id']!);
           schoolIdUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded School ID to: $schoolIdUrl');
         } else if (_images['school_id'] != null) {
-          final path = 'scholarship-documents/$studentId/school_id_$timestamp.jpg';
+          final path = '$studentId/school_id_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['school_id']!);
           schoolIdUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded School ID to: $schoolIdUrl');
         }
         
         // Upload id_picture
         if (kIsWeb && _imageBytes['id_picture'] != null) {
-          final path = 'scholarship-documents/$studentId/id_picture_$timestamp.jpg';
+          final path = '$studentId/id_picture_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['id_picture']!);
           idPictureUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded ID Picture to: $idPictureUrl');
         } else if (_images['id_picture'] != null) {
-          final path = 'scholarship-documents/$studentId/id_picture_$timestamp.jpg';
+          final path = '$studentId/id_picture_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['id_picture']!);
           idPictureUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded ID Picture to: $idPictureUrl');
         }
         
         // Upload birth_cert
         if (kIsWeb && _imageBytes['birth_cert'] != null) {
-          final path = 'scholarship-documents/$studentId/birth_cert_$timestamp.jpg';
+          final path = '$studentId/birth_cert_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['birth_cert']!);
           birthCertUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded Birth Cert to: $birthCertUrl');
         } else if (_images['birth_cert'] != null) {
-          final path = 'scholarship-documents/$studentId/birth_cert_$timestamp.jpg';
+          final path = '$studentId/birth_cert_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['birth_cert']!);
           birthCertUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded Birth Cert to: $birthCertUrl');
         }
         
         // Upload grades
         if (kIsWeb && _imageBytes['grades'] != null) {
-          final path = 'scholarship-documents/$studentId/grades_$timestamp.jpg';
+          final path = '$studentId/grades_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['grades']!);
           gradesUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded Grades to: $gradesUrl');
         } else if (_images['grades'] != null) {
-          final path = 'scholarship-documents/$studentId/grades_$timestamp.jpg';
+          final path = '$studentId/grades_$timestamp.jpg';
           await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['grades']!);
           gradesUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+          print('Uploaded Grades to: $gradesUrl');
         }
       } catch (e) {
         throw Exception('Failed to upload files: $e');
