@@ -47,6 +47,12 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
         query = query.eq('archived', false);
       } else if (_selectedTab == 'Archived Applications') {
         query = query.eq('archived', true);
+      } else if (_selectedTab == 'Archived Renewals') {
+        setState(() {
+          _applications = [];
+          _isLoading = false;
+        });
+        return;
       }
       
       final apps = await query.order('submission_date', ascending: false);
@@ -95,8 +101,13 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
       // Filter based on selected tab
       if (_selectedTab == 'Renewal Applications') {
         query = query.eq('archived', false);
-      } else if (_selectedTab == 'Archived Applications') {
+      } else if (_selectedTab == 'Archived Renewals') {
         query = query.eq('archived', true);
+      } else if (_selectedTab == 'Archived Applications') {
+        setState(() {
+          _renewals = [];
+        });
+        return;
       }
       
       final renewals = await query.order('submission_date', ascending: false);
@@ -165,7 +176,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
     // Select data based on tab
     if (_selectedTab == 'Active Applications' || _selectedTab == 'Archived Applications') {
       filtered = _applications;
-    } else if (_selectedTab == 'Renewal Applications') {
+    } else if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
       filtered = _renewals;
     }
 
@@ -202,26 +213,26 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   int get _totalPages => (_filteredApplications.length / _rowsPerPage).ceil();
 
   int get _totalCount {
-    if (_selectedTab == 'Renewal Applications') return _renewals.length;
+    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') return _renewals.length;
     return _applications.length;
   }
   
   int get _approvedCount {
-    if (_selectedTab == 'Renewal Applications') {
+    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
       return _renewals.where((app) => app['status'] == 'Approved').length;
     }
     return _applications.where((app) => app['status'] == 'Approved').length;
   }
   
   int get _pendingCount {
-    if (_selectedTab == 'Renewal Applications') {
+    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
       return _renewals.where((app) => app['status'] == 'Pending').length;
     }
     return _applications.where((app) => app['status'] == 'Pending').length;
   }
   
   int get _rejectedCount {
-    if (_selectedTab == 'Renewal Applications') {
+    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
       return _renewals.where((app) => app['status'] == 'Rejected').length;
     }
     return _applications.where((app) => app['status'] == 'Rejected').length;
@@ -370,6 +381,8 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
         _buildTabButton('Renewal Applications', Icons.refresh),
         const SizedBox(width: 12),
         _buildTabButton('Archived Applications', Icons.archive),
+        const SizedBox(width: 12),
+        _buildTabButton('Archived Renewals', Icons.archive_outlined),
       ],
     );
   }
