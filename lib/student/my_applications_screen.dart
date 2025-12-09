@@ -182,25 +182,57 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
       
       final userId = userResponse['user_id'] as int;
 
+      // Fetch applications
       final apps = await Supabase.instance.client
           .from('application')
           .select()
           .eq('user_id', userId)
           .order('submission_date', ascending: false);
 
+      // Fetch renewals
+      final renewals = await Supabase.instance.client
+          .from('renew')
+          .select()
+          .eq('user_id', userId)
+          .order('submission_date', ascending: false);
+
+      final allApplications = <Map<String, dynamic>>[];
+
+      // Add applications
+      allApplications.addAll(apps.map<Map<String, dynamic>>((app) => {
+        'application_id': app['application_id'],
+        'type': 'Application',
+        'first_name': app['first_name'] ?? '',
+        'middle_name': app['middle_name'] ?? '',
+        'last_name': app['last_name'] ?? '',
+        'student_id': app['student_id'] ?? 'N/A',
+        'course': app['course'] ?? 'N/A',
+        'year_level': app['year_level'] ?? 'N/A',
+        'gwa': app['gwa']?.toString() ?? 'N/A',
+        'status': (app['status'] ?? 'pending').toLowerCase(),
+        'submission_date': app['submission_date']?.toString().split('T')[0] ?? 'N/A',
+      }));
+
+      // Add renewals
+      allApplications.addAll(renewals.map<Map<String, dynamic>>((ren) => {
+        'application_id': ren['renewal_id'],
+        'type': 'Renewal',
+        'first_name': ren['first_name'] ?? '',
+        'middle_name': ren['middle_name'] ?? '',
+        'last_name': ren['last_name'] ?? '',
+        'student_id': ren['student_id'] ?? 'N/A',
+        'course': ren['course'] ?? 'N/A',
+        'year_level': ren['year_level'] ?? 'N/A',
+        'gwa': ren['gwa']?.toString() ?? 'N/A',
+        'status': (ren['status'] ?? 'pending').toLowerCase(),
+        'submission_date': ren['submission_date']?.toString().split('T')[0] ?? 'N/A',
+      }));
+
+      // Sort by submission date
+      allApplications.sort((a, b) => (b['submission_date'] ?? '').compareTo(a['submission_date'] ?? ''));
+
       setState(() {
-        _applications = apps.map<Map<String, dynamic>>((app) => {
-          'application_id': app['application_id'],
-          'first_name': app['first_name'] ?? '',
-          'middle_name': app['middle_name'] ?? '',
-          'last_name': app['last_name'] ?? '',
-          'student_id': app['student_id'] ?? 'N/A',
-          'course': app['course'] ?? 'N/A',
-          'year_level': app['year_level'] ?? 'N/A',
-          'gwa': app['gwa']?.toString() ?? 'N/A',
-          'status': (app['status'] ?? 'pending').toLowerCase(),
-          'submission_date': app['submission_date']?.toString().split('T')[0] ?? 'N/A',
-        }).toList();
+        _applications = allApplications;
         _isLoading = false;
       });
     } catch (e) {
@@ -500,12 +532,32 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Application ID: #${app['application_id']}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF888888),
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: app['type'] == 'Renewal' ? const Color(0xFF7C3AED).withOpacity(0.1) : const Color(0xFF667EEA).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            app['type'] ?? 'Application',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: app['type'] == 'Renewal' ? const Color(0xFF7C3AED) : const Color(0xFF667EEA),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'ID: #${app['application_id']}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF888888),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -550,7 +602,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               ],
             ),
           ),
-          if (status == 'pending') ...[
+          if (status == 'pending' && app['type'] != 'Renewal') ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
