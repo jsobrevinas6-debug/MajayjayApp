@@ -285,11 +285,11 @@ INSERT INTO application (
     year_applied,
     reason,
     scholarship_type,
-    school_id_path,
-    id_picture_path,
-    birth_certificate_path,
-    grades_path,
-    cor_path,
+    school_id,
+    id_picture,
+    birth_certificate,
+    grades,
+    cor,
     status
 )
 SELECT 
@@ -335,11 +335,11 @@ INSERT INTO renew (
     year_level,
     gwa,
     reason,
-    school_id_path,
-    id_picture_path,
-    birth_certificate_path,
-    grades_path,
-    cor_path,
+    school_id,
+    id_picture,
+    birth_certificate,
+    grades,
+    cor,
     status
 )
 SELECT
@@ -357,7 +357,7 @@ SELECT
     '3rd Year',
     ROUND((RANDOM() * (1.75 - 1.25) + 1.25)::numeric, 2),
     'Sample renewal justification.',
-    a.school_id_path,
+    a.school_id,
     'renew_id_pic_' || a.application_id || '.jpg',
     'renew_birth_cert_' || a.application_id || '.pdf',
     'renew_grades_' || a.application_id || '.pdf',
@@ -366,6 +366,65 @@ SELECT
 FROM application a
 WHERE a.user_id BETWEEN 9 AND 157;
 
+ALTER TABLE application 
+  RENAME COLUMN school_id TO school_id_path;
+
+ALTER TABLE application 
+  RENAME COLUMN id_picture TO id_picture_path;
+
+ALTER TABLE application 
+  RENAME COLUMN birth_certificate TO birth_certificate_path;
+
+ALTER TABLE application 
+  RENAME COLUMN grades TO grades_path;
+
+ALTER TABLE application 
+  RENAME COLUMN cor TO cor_path;
+
+-- Rename columns in renew table
+ALTER TABLE renew 
+  RENAME COLUMN school_id TO school_id_path;
+
+ALTER TABLE renew 
+  RENAME COLUMN id_picture TO id_picture_path;
+
+ALTER TABLE renew 
+  RENAME COLUMN birth_certificate TO birth_certificate_path;
+
+ALTER TABLE renew 
+  RENAME COLUMN grades TO grades_path;
+
+ALTER TABLE renew 
+  RENAME COLUMN cor TO cor_path;
+
+SELECT application_id, school_id_path, id_picture_path, birth_certificate_path, grades_path 
+FROM application 
+ORDER BY submission_date DESC 
+LIMIT 5;
+
+UPDATE application 
+SET 
+  school_id_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/school_id.jpg',
+  id_picture_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/id_picture.jpg',
+  birth_certificate_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/birth_cert.jpg',
+  grades_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/grades.jpg'
+WHERE school_id_path IS NULL OR school_id_path = '';
+
+UPDATE renew 
+SET 
+  school_id_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/school_id.jpg',
+  id_picture_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/id_picture.jpg',
+  birth_certificate_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/birth_cert.jpg',
+  grades_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/grades.jpg',
+  cor_path = 'https://your-project.supabase.co/storage/v1/object/public/scholarship_bucket/' || student_id || '/cor.jpg'
+WHERE school_id_path IS NULL OR school_id_path = '';
+
+DROP POLICY IF EXISTS "Public Access" ON storage.objects;
+
 CREATE POLICY "Public Access"
-ON storage.objects FOR SELECT
-USING ( bucket_id = 'scholarship-documents' );
+ON storage.objects FOR ALL
+TO public
+USING (bucket_id = 'scholarship_bucket')
+WITH CHECK (bucket_id = 'scholarship_bucket');
+
+ALTER TABLE application DROP CONSTRAINT application_student_id_key;
