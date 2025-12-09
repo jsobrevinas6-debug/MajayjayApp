@@ -49,6 +49,7 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   bool _isSubmitting = false;
   bool _hasApprovedApplication = false;
   bool _isCheckingApplication = true;
+  bool _hasExistingRenewal = false;
 
   final _semesters = ['First Semester', 'Second Semester', 'Summer'];
   final _shsLevels = ['11th Grade', '12th Grade', 'None'];
@@ -89,8 +90,14 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
           .eq('user_id', userId)
           .eq('status', 'approved');
 
+      final renewals = await Supabase.instance.client
+          .from('renew')
+          .select('renewal_id')
+          .eq('user_id', userId);
+
       setState(() {
         _hasApprovedApplication = apps.isNotEmpty;
+        _hasExistingRenewal = renewals.isNotEmpty;
         _isCheckingApplication = false;
       });
     } catch (e) {
@@ -198,7 +205,7 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
       );
     }
 
-    if (!_hasApprovedApplication) {
+    if (!_hasApprovedApplication || _hasExistingRenewal) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F2FF),
         appBar: AppBar(
@@ -230,17 +237,23 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.warning_amber_rounded, size: 80, color: Color(0xFFF56565)),
+                Icon(
+                  _hasExistingRenewal ? Icons.check_circle_outline : Icons.warning_amber_rounded,
+                  size: 80,
+                  color: _hasExistingRenewal ? const Color(0xFF48BB78) : const Color(0xFFF56565),
+                ),
                 const SizedBox(height: 20),
-                const Text(
-                  'No Approved Application',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF2D3748)),
+                Text(
+                  _hasExistingRenewal ? 'Already Renewed' : 'No Approved Application',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Color(0xFF2D3748)),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'You need to have an approved scholarship application before you can renew. Please apply for a scholarship first.',
-                  style: TextStyle(color: Color(0xFF718096)),
+                Text(
+                  _hasExistingRenewal
+                      ? 'You have already submitted a renewal application. You can only renew once per scholarship period.'
+                      : 'You need to have an approved scholarship application before you can renew. Please apply for a scholarship first.',
+                  style: const TextStyle(color: Color(0xFF718096)),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

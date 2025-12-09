@@ -3,6 +3,7 @@ import 'package:flutter_application_2/student/apply_scholarship_screen.dart';
 import 'package:flutter_application_2/student/my_applications_screen.dart';
 import 'package:flutter_application_2/student/renewal_scholarship_screen.dart';
 import 'package:flutter_application_2/widgets/app_drawer.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class StudentDashboard extends StatelessWidget {
   final String name;
@@ -130,16 +131,59 @@ class StudentDashboard extends StatelessWidget {
                     description: 'Renew Scholarship',
                     buttonText: 'Renew Now',
                     buttonColor: const Color(0xFF764BA2),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RenewScholarshipScreen(
-                            userName: name,
-                            userEmail: 'student@example.com',
+                    onPressed: () async {
+                      try {
+                        final result = await Supabase.instance.client
+                            .from('renewal_settings')
+                            .select('is_open')
+                            .eq('id', 1)
+                            .maybeSingle();
+                        
+                        final isOpen = result?['is_open'] ?? false;
+                        
+                        if (!context.mounted) return;
+                        
+                        if (!isOpen) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              title: const Row(
+                                children: [
+                                  Icon(Icons.lock, color: Colors.red),
+                                  SizedBox(width: 10),
+                                  Text('Renewal Closed'),
+                                ],
+                              ),
+                              content: const Text('The renewal period is currently closed. Please check back later or contact the administrator.'),
+                              actions: [
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF764BA2)),
+                                  child: const Text('OK', style: TextStyle(color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+                        
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RenewScholarshipScreen(
+                              userName: name,
+                              userEmail: 'student@example.com',
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
+                      }
                     },
                   ),
                   _buildCard(

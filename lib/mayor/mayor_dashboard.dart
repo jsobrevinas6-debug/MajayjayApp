@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/mayor/view_scholars(mayor).dart';
 import 'package:flutter_application_2/mayor/view_scholar_records(mayor).dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() {
   runApp(const MayorDashboardApp());
@@ -23,8 +24,66 @@ class MayorDashboardApp extends StatelessWidget {
   }
 }
 
-class MayorDashboardPage extends StatelessWidget {
+class MayorDashboardPage extends StatefulWidget {
   const MayorDashboardPage({super.key});
+
+  @override
+  State<MayorDashboardPage> createState() => _MayorDashboardPageState();
+}
+
+class _MayorDashboardPageState extends State<MayorDashboardPage> {
+  bool _renewalIsOpen = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRenewalStatus();
+  }
+
+  Future<void> _loadRenewalStatus() async {
+    try {
+      final result = await Supabase.instance.client
+          .from('renewal_settings')
+          .select('is_open')
+          .eq('id', 1)
+          .maybeSingle();
+      
+      setState(() {
+        _renewalIsOpen = result?['is_open'] ?? false;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _toggleRenewalStatus() async {
+    try {
+      final newStatus = !_renewalIsOpen;
+      
+      await Supabase.instance.client
+          .from('renewal_settings')
+          .upsert({'id': 1, 'is_open': newStatus, 'updated_at': DateTime.now().toIso8601String()});
+      
+      setState(() => _renewalIsOpen = newStatus);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Renewal is now ${newStatus ? "OPEN" : "CLOSED"}'),
+            backgroundColor: newStatus ? Colors.green : Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -294,6 +353,47 @@ class MayorDashboardPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _renewalIsOpen ? Colors.green.shade100 : Colors.red.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _renewalIsOpen ? Colors.green : Colors.red,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                _renewalIsOpen ? Icons.lock_open : Icons.lock,
+                                size: 16,
+                                color: _renewalIsOpen ? Colors.green : Colors.red,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _renewalIsOpen ? 'OPEN' : 'CLOSED',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: _renewalIsOpen ? Colors.green : Colors.red,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _toggleRenewalStatus,
+                          icon: Icon(_renewalIsOpen ? Icons.lock : Icons.lock_open, size: 18),
+                          label: Text(_renewalIsOpen ? 'Close Renewal' : 'Open Renewal'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _renewalIsOpen ? Colors.red : Colors.green,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                           ),
                         ),
                       ],

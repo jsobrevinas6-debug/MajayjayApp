@@ -502,5 +502,60 @@ def get_mayor_applications():
         return jsonify({"error": str(e)}), 500
 
 
+# -----------------------------
+# Renewal Status Routes
+# -----------------------------
+
+@app.route("/renewal/status", methods=["GET", "OPTIONS"])
+def get_renewal_status():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    """Get renewal open/closed status."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT is_open FROM renewal_settings WHERE id = 1")
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        is_open = result['is_open'] if result else False
+        return jsonify({"is_open": is_open})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/renewal/status", methods=["PUT", "OPTIONS"])
+def update_renewal_status():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    """Update renewal open/closed status."""
+    data = request.get_json()
+    is_open = data.get("is_open")
+    
+    if is_open is None:
+        return jsonify({"error": "is_open field is required"}), 400
+    
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cur.execute(
+            """INSERT INTO renewal_settings (id, is_open, updated_at) 
+               VALUES (1, %s, NOW()) 
+               ON CONFLICT (id) DO UPDATE SET is_open = %s, updated_at = NOW()
+               RETURNING *""",
+            (is_open, is_open)
+        )
+        result = cur.fetchone()
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"message": "Renewal status updated", "is_open": result['is_open']})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
