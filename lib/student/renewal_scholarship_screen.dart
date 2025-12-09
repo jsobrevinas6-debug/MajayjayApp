@@ -196,12 +196,40 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final renewalData = {
-        'student_id': 2,
-        'student_name': '${_controllers['firstName']!.text} ${_controllers['surname']!.text}',
-      };
+      final userEmail = Supabase.instance.client.auth.currentUser?.email;
+      if (userEmail == null) throw Exception('User not authenticated');
 
-      await ApiService.submitRenewal(renewalData);
+      final userResponse = await Supabase.instance.client
+          .from('users')
+          .select('user_id')
+          .eq('email', userEmail)
+          .single();
+      
+      final userId = userResponse['user_id'] as int;
+
+      final appResponse = await Supabase.instance.client
+          .from('application')
+          .select('application_id')
+          .eq('user_id', userId)
+          .eq('status', 'approved')
+          .single();
+      
+      final applicationId = appResponse['application_id'] as int;
+
+      await Supabase.instance.client.from('renew').insert({
+        'application_id': applicationId,
+        'user_id': userId,
+        'first_name': _controllers['firstName']!.text,
+        'middle_name': _controllers['middleName']!.text.isNotEmpty ? _controllers['middleName']!.text : null,
+        'last_name': _controllers['surname']!.text,
+        'student_id': _controllers['studentId']!.text,
+        'contact_number': _controllers['contact']!.text,
+        'course': _controllers['course']!.text,
+        'year_level': _selectedYearLevel,
+        'gwa': double.tryParse(_controllers['gwa']!.text),
+        'reason': _controllers['reason']!.text,
+        'status': 'pending',
+      })
       
       if (!mounted) return;
       setState(() => _isSubmitting = false);
