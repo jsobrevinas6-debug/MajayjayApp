@@ -775,7 +775,6 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
 
   Widget _buildDocumentRow(String label, String path) {
     final hasFile = path.isNotEmpty;
-    print('Document: $label, Path: $path, HasFile: $hasFile');
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -789,12 +788,15 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
           if (hasFile)
             TextButton.icon(
               onPressed: () async {
-                print('Opening URL: $path');
-                final uri = Uri.parse(path);
-                if (await canLaunchUrl(uri)) {
+                try {
+                  final uri = Uri.parse(path);
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
-                } else {
-                  print('Cannot launch URL: $path');
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error opening document: $e')),
+                    );
+                  }
                 }
               },
               icon: const Icon(Icons.visibility, size: 16),
