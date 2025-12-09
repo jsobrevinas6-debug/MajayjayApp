@@ -414,7 +414,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               ],
             ),
           ),
-          if (status == 'pending') ..[
+          if (status == 'pending') ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
