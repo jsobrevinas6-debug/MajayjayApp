@@ -686,7 +686,6 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
                 _buildDocumentRow('📷 2x2 ID Picture', app['idPicture']),
                 _buildDocumentRow('📋 Birth Certificate', app['birthCert']),
                 _buildDocumentRow('📊 Copy of Grades', app['grades']),
-                _buildDocumentRow('📄 COR', app['cor']),
               ],
             ),
           ),
