@@ -33,11 +33,20 @@ class MayorDashboardPage extends StatefulWidget {
 class _MayorDashboardPageState extends State<MayorDashboardPage> {
   bool _renewalIsOpen = false;
   bool _isLoading = true;
+  int _totalNew = 0;
+  int _approvedNew = 0;
+  int _pendingNew = 0;
+  int _rejectedNew = 0;
+  int _totalRenewals = 0;
+  int _approvedRenewals = 0;
+  int _pendingRenewals = 0;
+  int _rejectedRenewals = 0;
 
   @override
   void initState() {
     super.initState();
     _loadRenewalStatus();
+    _loadStatistics();
   }
 
   Future<void> _loadRenewalStatus() async {
@@ -50,6 +59,33 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
       
       setState(() {
         _renewalIsOpen = result?['is_open'] ?? false;
+      });
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
+  Future<void> _loadStatistics() async {
+    try {
+      final apps = await Supabase.instance.client
+          .from('application')
+          .select();
+      
+      final renewals = await Supabase.instance.client
+          .from('renew')
+          .select();
+      
+      setState(() {
+        _totalNew = apps.length;
+        _approvedNew = apps.where((a) => a['status'] == 'approved').length;
+        _pendingNew = apps.where((a) => a['status'] == 'pending').length;
+        _rejectedNew = apps.where((a) => a['status'] == 'rejected').length;
+        
+        _totalRenewals = renewals.length;
+        _approvedRenewals = renewals.where((r) => r['status'] == 'approved').length;
+        _pendingRenewals = renewals.where((r) => r['status'] == 'pending').length;
+        _rejectedRenewals = renewals.where((r) => r['status'] == 'rejected').length;
+        
         _isLoading = false;
       });
     } catch (e) {
@@ -189,7 +225,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.bar_chart,
-                            number: '4',
+                            number: _totalNew.toString(),
                             label: 'TOTAL NEW',
                             color: Colors.blue,
                           ),
@@ -198,7 +234,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.check_circle,
-                            number: '1',
+                            number: _approvedNew.toString(),
                             label: 'APPROVED',
                             color: Colors.green,
                           ),
@@ -207,7 +243,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.hourglass_empty,
-                            number: '1',
+                            number: _pendingNew.toString(),
                             label: 'PENDING',
                             color: Colors.orange,
                           ),
@@ -216,7 +252,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.cancel,
-                            number: '2',
+                            number: _rejectedNew.toString(),
                             label: 'REJECTED',
                             color: Colors.red,
                           ),
@@ -291,7 +327,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.description,
-                            number: '3',
+                            number: _totalRenewals.toString(),
                             label: 'TOTAL RENEWALS',
                             color: Colors.blue,
                           ),
@@ -300,7 +336,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.check_circle,
-                            number: '2',
+                            number: _approvedRenewals.toString(),
                             label: 'APPROVED',
                             color: Colors.green,
                           ),
@@ -309,7 +345,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.hourglass_empty,
-                            number: '0',
+                            number: _pendingRenewals.toString(),
                             label: 'PENDING',
                             color: Colors.orange,
                           ),
@@ -318,7 +354,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.cancel,
-                            number: '0',
+                            number: _rejectedRenewals.toString(),
                             label: 'REJECTED',
                             color: Colors.red,
                           ),
@@ -372,7 +408,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                             children: [
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: '7',
+                                  number: (_totalNew + _totalRenewals).toString(),
                                   label: 'TOTAL APPLICATIONS',
                                   color: Colors.blue.shade100,
                                 ),
@@ -380,7 +416,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: '3',
+                                  number: (_approvedNew + _approvedRenewals).toString(),
                                   label: 'TOTAL APPROVED',
                                   color: Colors.blue.shade100,
                                 ),
@@ -388,7 +424,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: '1',
+                                  number: (_pendingNew + _pendingRenewals).toString(),
                                   label: 'TOTAL PENDING',
                                   color: Colors.blue.shade100,
                                 ),
@@ -396,7 +432,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: '2',
+                                  number: (_rejectedNew + _rejectedRenewals).toString(),
                                   label: 'TOTAL REJECTED',
                                   color: Colors.blue.shade100,
                                 ),

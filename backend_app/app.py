@@ -209,18 +209,41 @@ def get_admins():
 # Mayor Routes
 # -----------------------------
 
-@app.route("/mayor/dashboard", methods=["GET"])
+@app.route("/mayor/dashboard", methods=["GET", "OPTIONS"])
 def mayor_dashboard():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
     """Get mayor dashboard statistics."""
-    total_scholars = len(students)
-    total_applications = len(applications)
-    approved_scholarships = len([a for a in applications if a["status"] == "Approved"])
-    
-    return jsonify({
-        "total_scholars": total_scholars,
-        "total_applications": total_applications,
-        "approved_scholarships": approved_scholarships
-    })
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Get application statistics
+        cur.execute("SELECT status, COUNT(*) as count FROM application GROUP BY status")
+        app_stats = cur.fetchall()
+        
+        # Get renewal statistics
+        cur.execute("SELECT status, COUNT(*) as count FROM renew GROUP BY status")
+        renewal_stats = cur.fetchall()
+        
+        cur.close()
+        conn.close()
+        
+        # Process statistics
+        stats = {
+            "total_new": sum(s['count'] for s in app_stats),
+            "approved_new": next((s['count'] for s in app_stats if s['status'] == 'approved'), 0),
+            "pending_new": next((s['count'] for s in app_stats if s['status'] == 'pending'), 0),
+            "rejected_new": next((s['count'] for s in app_stats if s['status'] == 'rejected'), 0),
+            "total_renewals": sum(s['count'] for s in renewal_stats),
+            "approved_renewals": next((s['count'] for s in renewal_stats if s['status'] == 'approved'), 0),
+            "pending_renewals": next((s['count'] for s in renewal_stats if s['status'] == 'pending'), 0),
+            "rejected_renewals": next((s['count'] for s in renewal_stats if s['status'] == 'rejected'), 0),
+        }
+        
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/mayor/scholars", methods=["GET"])
