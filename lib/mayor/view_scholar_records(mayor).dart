@@ -47,7 +47,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
         query = query.eq('archived', false);
       } else if (_selectedTab == 'Archived Applications') {
         query = query.eq('archived', true);
-      } else if (_selectedTab == 'Archived Renewals') {
+      } else if (_selectedTab == 'Renewal Applications') {
         setState(() {
           _applications = [];
           _isLoading = false;
@@ -101,9 +101,9 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
       // Filter based on selected tab
       if (_selectedTab == 'Renewal Applications') {
         query = query.eq('archived', false);
-      } else if (_selectedTab == 'Archived Renewals') {
-        query = query.eq('archived', true);
       } else if (_selectedTab == 'Archived Applications') {
+        query = query.eq('archived', true);
+      } else if (_selectedTab == 'Active Applications') {
         setState(() {
           _renewals = [];
         });
@@ -174,10 +174,12 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
     List<Map<String, dynamic>> filtered = [];
     
     // Select data based on tab
-    if (_selectedTab == 'Active Applications' || _selectedTab == 'Archived Applications') {
+    if (_selectedTab == 'Active Applications') {
       filtered = _applications;
-    } else if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
+    } else if (_selectedTab == 'Renewal Applications') {
       filtered = _renewals;
+    } else if (_selectedTab == 'Archived Applications') {
+      filtered = [..._applications, ..._renewals];
     }
 
     // Apply status filter
@@ -383,8 +385,6 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
         _buildTabButton('Renewal Applications', Icons.refresh),
         const SizedBox(width: 12),
         _buildTabButton('Archived Applications', Icons.archive),
-        const SizedBox(width: 12),
-        _buildTabButton('Archived Renewals', Icons.archive_outlined),
       ],
     );
   }
