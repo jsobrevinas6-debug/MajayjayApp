@@ -37,7 +37,6 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
     'reason': TextEditingController(),
   };
 
-  int? _applicationId;
   String? _selectedYearLevel;
   String? _selectedBarangay;
   
@@ -53,20 +52,6 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   bool _hasApprovedApplication = false;
   bool _isCheckingApplication = true;
   bool _hasExistingRenewal = false;
-
-  final _semesters = ['First Semester', 'Second Semester', 'Summer'];
-  final _shsLevels = ['11th Grade', '12th Grade', 'None'];
-  final _yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
-  
-  final _barangays = [
-    'Amonoy', 'Bakia', 'Balanac', 'Balayong', 'Banilad', 'Banti', 'Bitaoy', 
-    'Botocan', 'Bukal', 'Burgos', 'Burol', 'Coralao', 'Gagalot', 'Ibabang Banga', 
-    'Ibabang Bayucain', 'Ilayang Banga', 'Ilayang Bayucain', 'Isabang', 'Malinao', 
-    'May-it', 'Munting Kawayan', 'Olla', 'Oobi', 'Origuel (Poblacion)', 'Panalaban', 
-    'Pangil', 'Panglan', 'Piit', 'Pook', 'Rizal', 'San Francisco (Poblacion)', 
-    'San Isidro', 'San Miguel (Poblacion)', 'San Roque', 'Santa Catalina', 'Suba', 
-    'Talortor', 'Tanawan', 'Taytay', 'Villa Nogales'
-  ];
 
   @override
   void initState() {
@@ -97,7 +82,6 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
 
       if (appResponse != null) {
         setState(() {
-          _applicationId = appResponse['application_id'];
           _controllers['firstName']?.text = appResponse['first_name'] ?? '';
           _controllers['middleName']?.text = appResponse['middle_name'] ?? '';
           _controllers['surname']?.text = appResponse['last_name'] ?? '';
