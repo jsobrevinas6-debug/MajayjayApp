@@ -665,5 +665,71 @@ def update_renewal_status():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/renewal/<int:renewal_id>", methods=["PUT", "OPTIONS"])
+def update_renewal(renewal_id):
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    """Update renewal application."""
+    data = request.get_json()
+    
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Build update query dynamically based on provided fields
+        update_fields = []
+        values = []
+        
+        if 'student_id' in data:
+            update_fields.append('student_id = %s')
+            values.append(data['student_id'])
+        if 'course' in data:
+            update_fields.append('course = %s')
+            values.append(data['course'])
+        if 'year_level' in data:
+            update_fields.append('year_level = %s')
+            values.append(data['year_level'])
+        if 'gwa' in data:
+            update_fields.append('gwa = %s')
+            values.append(data['gwa'])
+        if 'school_id_path' in data:
+            update_fields.append('school_id_path = %s')
+            values.append(data['school_id_path'])
+        if 'id_picture_path' in data:
+            update_fields.append('id_picture_path = %s')
+            values.append(data['id_picture_path'])
+        if 'birth_certificate_path' in data:
+            update_fields.append('birth_certificate_path = %s')
+            values.append(data['birth_certificate_path'])
+        if 'grades_path' in data:
+            update_fields.append('grades_path = %s')
+            values.append(data['grades_path'])
+        if 'cor_path' in data:
+            update_fields.append('cor_path = %s')
+            values.append(data['cor_path'])
+        
+        if not update_fields:
+            return jsonify({"error": "No fields to update"}), 400
+        
+        values.append(renewal_id)
+        query = f"UPDATE renew SET {', '.join(update_fields)} WHERE renewal_id = %s RETURNING *"
+        
+        cur.execute(query, values)
+        updated_renewal = cur.fetchone()
+        
+        if not updated_renewal:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Renewal not found"}), 404
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"message": "Renewal updated successfully", "renewal": dict(updated_renewal)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)

@@ -602,7 +602,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               ],
             ),
           ),
-          if (status == 'pending' && app['type'] != 'Renewal') ...[
+          if (status == 'pending') ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
