@@ -51,25 +51,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
                       ),
                     ],
                   ),
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF667EEA).withValues(alpha: 0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/images/majayjay.jpg',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
                     ),
-                    child: const Icon(Icons.school_rounded, size: 40, color: Colors.white),
                   ),
                   const SizedBox(height: 24),
                   ShaderMask(
