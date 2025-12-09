@@ -129,11 +129,11 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
           'renewal_id': ren['renewal_id'],
           'address': ren['address'] ?? 'N/A',
           'reason': ren['reason'] ?? 'N/A',
-          'schoolId': ren['school_id'] ?? '',
-          'idPicture': ren['id_picture'] ?? '',
-          'birthCert': ren['birth_certificate'] ?? '',
-          'grades': ren['grades'] ?? '',
-          'cor': ren['cor'] ?? '',
+          'schoolId': ren['school_id_path'] ?? '',
+          'idPicture': ren['id_picture_path'] ?? '',
+          'birthCert': ren['birth_certificate_path'] ?? '',
+          'grades': ren['grades_path'] ?? '',
+          'cor': ren['cor_path'] ?? '',
         }).toList();
       });
     } catch (e) {
