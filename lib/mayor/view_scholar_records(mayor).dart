@@ -657,9 +657,25 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
                 _buildDetailRow('Year Level', app['year']),
                 _buildDetailRow('GWA', app['gwa']),
                 _buildDetailRow('Address', app['address']),
-                _buildDetailRow('Reason', app['reason']),
                 _buildDetailRow('Status', app['status']),
                 _buildDetailRow('Date Applied', app['dateApplied']),
+                const SizedBox(height: 16),
+                const Text(
+                  '💭 Why do you deserve this scholarship?',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFF7F7F7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    app['reason'] ?? 'No reason provided',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   '📎 Documents:',
