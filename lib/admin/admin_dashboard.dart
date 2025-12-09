@@ -342,7 +342,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               color: Color(0xFF666666),
                             ),
                           ),
-                          onSort: (_, __) => _onSort('id'),
+                          onSort: (columnIndex, ascending) => _onSort('id'),
                         ),
                         DataColumn(
                           label: const Text(
@@ -352,7 +352,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               color: Color(0xFF666666),
                             ),
                           ),
-                          onSort: (_, __) => _onSort('firstName'),
+                          onSort: (columnIndex, ascending) => _onSort('firstName'),
                         ),
                         DataColumn(
                           label: const Text(
@@ -362,7 +362,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               color: Color(0xFF666666),
                             ),
                           ),
-                          onSort: (_, __) => _onSort('middleName'),
+                          onSort: (columnIndex, ascending) => _onSort('middleName'),
                         ),
                         DataColumn(
                           label: const Text(
@@ -372,7 +372,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               color: Color(0xFF666666),
                             ),
                           ),
-                          onSort: (_, __) => _onSort('lastName'),
+                          onSort: (columnIndex, ascending) => _onSort('lastName'),
                         ),
                         DataColumn(
                           label: const Text(
@@ -382,7 +382,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               color: Color(0xFF666666),
                             ),
                           ),
-                          onSort: (_, __) => _onSort('email'),
+                          onSort: (columnIndex, ascending) => _onSort('email'),
                         ),
                         DataColumn(
                           label: const Text(
@@ -392,7 +392,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                               color: Color(0xFF666666),
                             ),
                           ),
-                          onSort: (_, __) => _onSort('role'),
+                          onSort: (columnIndex, ascending) => _onSort('role'),
                         ),
                       ],
                       rows: _paginatedUsers.map((user) {
