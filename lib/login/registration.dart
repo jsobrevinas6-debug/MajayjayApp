@@ -489,6 +489,22 @@ class _RegistrationPageState extends State<RegistrationPage> {
     }
     setState(() => _isLoading = true);
     try {
+      final existingUser = await supabase
+          .from('users')
+          .select('email')
+          .eq('email', _emailController.text.trim())
+          .maybeSingle();
+      
+      if (existingUser != null) {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('This email is already registered. Please login instead.'), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
+
       await supabase.auth.signInWithOtp(
         email: _emailController.text.trim(),
         shouldCreateUser: true,
