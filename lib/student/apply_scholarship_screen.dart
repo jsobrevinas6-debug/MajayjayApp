@@ -77,6 +77,28 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
   void initState() {
     super.initState();
     _checkExistingApplication();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final userEmail = Supabase.instance.client.auth.currentUser?.email;
+      if (userEmail == null) return;
+
+      final userResponse = await Supabase.instance.client
+          .from('users')
+          .select('first_name, middle_name, last_name')
+          .eq('email', userEmail)
+          .single();
+
+      setState(() {
+        _controllers['firstName']?.text = userResponse['first_name'] ?? '';
+        _controllers['middleName']?.text = userResponse['middle_name'] ?? '';
+        _controllers['surname']?.text = userResponse['last_name'] ?? '';
+      });
+    } catch (e) {
+      // Silently fail if user data not found
+    }
   }
 
   Future<void> _checkExistingApplication() async {

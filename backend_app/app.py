@@ -300,6 +300,33 @@ def get_student_profile(user_id):
     return jsonify({"error": "User not found"}), 404
 
 
+@app.route("/user/by-email", methods=["GET", "OPTIONS"])
+def get_user_by_email():
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    """Get user data by email."""
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute(
+            "SELECT first_name, middle_name, last_name FROM users WHERE email = %s",
+            (email,)
+        )
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+        
+        if user:
+            return jsonify(dict(user))
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/add_student', methods=['POST'])
 def add_student():
     """Add new student."""
