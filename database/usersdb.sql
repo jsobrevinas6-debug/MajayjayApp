@@ -365,3 +365,7 @@ SELECT
     'Pending'
 FROM application a
 WHERE a.user_id BETWEEN 9 AND 157;
+
+CREATE POLICY "Public Access"
+ON storage.objects FOR SELECT
+USING ( bucket_id = 'scholarship-documents' );
