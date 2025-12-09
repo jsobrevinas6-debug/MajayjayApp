@@ -556,6 +556,7 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
         keyboardType: keyboardType,
         maxLines: maxLines,
         enabled: enabled,
+        style: enabled ? null : const TextStyle(color: Color(0xFF9CA3AF)),
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
@@ -563,7 +564,7 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF667EEA), width: 2)),
           disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2)),
           filled: true,
-          fillColor: enabled ? const Color(0xFFF7FAFC) : const Color(0xFFE2E8F0),
+          fillColor: const Color(0xFFF7FAFC),
         ),
         validator: required ? (v) => v == null || v.isEmpty ? 'This field is required' : null : null,
       ),
