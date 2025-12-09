@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_application_2/widgets/app_drawer.dart';
 import 'package:flutter_application_2/services/api_service.dart';
@@ -41,6 +42,14 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   String? _selectedBarangay;
   
   final _images = <String, File?>{
+    'school_id': null,
+    'id_picture': null,
+    'birth_cert': null,
+    'grades': null,
+    'cor': null,
+  };
+  
+  final _imageBytes = <String, Uint8List?>{
     'school_id': null,
     'id_picture': null,
     'birth_cert': null,
@@ -137,13 +146,28 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   }
 
   Future<void> _pickImage(String type) async {
-    final image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1800,
-      maxHeight: 1800,
-      imageQuality: 85,
-    );
-    if (image != null) setState(() => _images[type] = File(image.path));
+    try {
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1800,
+        maxHeight: 1800,
+        imageQuality: 85,
+      );
+      if (image != null) {
+        if (kIsWeb) {
+          final bytes = await image.readAsBytes();
+          setState(() => _imageBytes[type] = bytes);
+        } else {
+          setState(() => _images[type] = File(image.path));
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _submitRenewal() async {
@@ -156,7 +180,13 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
       return;
     }
 
-    if (_images['school_id'] == null || _images['id_picture'] == null || _images['birth_cert'] == null || _images['grades'] == null || _images['cor'] == null) {
+    final hasSchoolId = kIsWeb ? _imageBytes['school_id'] != null : _images['school_id'] != null;
+    final hasIdPicture = kIsWeb ? _imageBytes['id_picture'] != null : _images['id_picture'] != null;
+    final hasBirthCert = kIsWeb ? _imageBytes['birth_cert'] != null : _images['birth_cert'] != null;
+    final hasGrades = kIsWeb ? _imageBytes['grades'] != null : _images['grades'] != null;
+    final hasCor = kIsWeb ? _imageBytes['cor'] != null : _images['cor'] != null;
+    
+    if (!hasSchoolId || !hasIdPicture || !hasBirthCert || !hasGrades || !hasCor) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please upload all required documents!'), backgroundColor: Colors.red),
       );
@@ -460,13 +490,13 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   }
 
   Widget _buildDocUpload(String title, String subtitle, String type, bool required) {
-    final file = _images[type];
+    final hasFile = kIsWeb ? _imageBytes[type] != null : _images[type] != null;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: file != null ? const Color(0xFF48BB78) : Colors.grey.shade300, width: 2),
+        border: Border.all(color: hasFile ? const Color(0xFF48BB78) : Colors.grey.shade300, width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,15 +510,23 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
           const SizedBox(height: 4),
           Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
           const SizedBox(height: 12),
-          if (file != null)
+          if (hasFile)
             Stack(
               children: [
-                ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(file, height: 120, width: double.infinity, fit: BoxFit.cover)),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: kIsWeb
+                      ? Image.memory(_imageBytes[type]!, height: 120, width: double.infinity, fit: BoxFit.cover)
+                      : Image.file(_images[type]!, height: 120, width: double.infinity, fit: BoxFit.cover),
+                ),
                 Positioned(
                   top: 8,
                   right: 8,
                   child: IconButton(
-                    onPressed: () => setState(() => _images[type] = null),
+                    onPressed: () => setState(() {
+                      _images[type] = null;
+                      _imageBytes[type] = null;
+                    }),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
                   ),
