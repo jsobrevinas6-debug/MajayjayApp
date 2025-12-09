@@ -69,6 +69,28 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
   void initState() {
     super.initState();
     _checkApprovedApplication();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final userEmail = Supabase.instance.client.auth.currentUser?.email;
+      if (userEmail == null) return;
+
+      final userResponse = await Supabase.instance.client
+          .from('users')
+          .select('first_name, middle_name, last_name')
+          .eq('email', userEmail)
+          .single();
+
+      setState(() {
+        _controllers['firstName']?.text = userResponse['first_name'] ?? '';
+        _controllers['middleName']?.text = userResponse['middle_name'] ?? '';
+        _controllers['surname']?.text = userResponse['last_name'] ?? '';
+      });
+    } catch (e) {
+      // Silently fail if user data not found
+    }
   }
 
   Future<void> _checkApprovedApplication() async {
@@ -322,9 +344,9 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
                     const SizedBox(height: 24),
 
                     _buildSection('👤 Personal Information', [
-                      _buildTextField('firstName', 'First Name', 'Juan', Icons.person),
-                      _buildTextField('middleName', 'Middle Name', 'Santos', Icons.person_outline, required: false),
-                      _buildTextField('surname', 'Surname', 'Dela Cruz', Icons.person),
+                      _buildTextField('firstName', 'First Name', 'Juan', Icons.person, enabled: false),
+                      _buildTextField('middleName', 'Middle Name', 'Santos', Icons.person_outline, required: false, enabled: false),
+                      _buildTextField('surname', 'Surname', 'Dela Cruz', Icons.person, enabled: false),
                       Row(
                         children: [
                           Expanded(child: _buildTextField('studentId', 'Student ID', '2024-12345', Icons.badge)),
@@ -425,18 +447,21 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
     ],
   );
 
-  Widget _buildTextField(String key, String label, String hint, IconData icon, {TextInputType? keyboardType, int maxLines = 1, int? maxLength, bool required = true, String? Function(String?)? validator}) {
+  Widget _buildTextField(String key, String label, String hint, IconData icon, {TextInputType? keyboardType, int maxLines = 1, int? maxLength, bool required = true, bool enabled = true, String? Function(String?)? validator}) {
     return TextFormField(
       controller: _controllers[key],
       keyboardType: keyboardType,
       maxLines: maxLines,
       maxLength: maxLength,
+      enabled: enabled,
+      style: enabled ? null : const TextStyle(color: Color(0xFF9CA3AF)),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon, color: const Color(0xFF9B59B6)),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF9B59B6), width: 2)),
+        disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.white,
         counterText: '',
