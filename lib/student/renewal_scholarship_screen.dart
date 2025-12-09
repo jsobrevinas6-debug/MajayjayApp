@@ -215,6 +215,71 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
       
       final applicationId = appResponse['application_id'] as int;
 
+      // Upload documents to Supabase Storage
+      String? schoolIdUrl, idPictureUrl, birthCertUrl, gradesUrl, corUrl;
+      
+      try {
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final studentId = _controllers['studentId']!.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+        
+        // Upload school_id
+        if (kIsWeb && _imageBytes['school_id'] != null) {
+          final path = '$studentId/school_id_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').uploadBinary(path, _imageBytes['school_id']!);
+          schoolIdUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        } else if (_images['school_id'] != null) {
+          final path = '$studentId/school_id_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, _images['school_id']!);
+          schoolIdUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        }
+        
+        // Upload id_picture
+        if (kIsWeb && _imageBytes['id_picture'] != null) {
+          final path = '$studentId/id_picture_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').uploadBinary(path, _imageBytes['id_picture']!);
+          idPictureUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        } else if (_images['id_picture'] != null) {
+          final path = '$studentId/id_picture_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, _images['id_picture']!);
+          idPictureUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        }
+        
+        // Upload birth_cert
+        if (kIsWeb && _imageBytes['birth_cert'] != null) {
+          final path = '$studentId/birth_cert_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').uploadBinary(path, _imageBytes['birth_cert']!);
+          birthCertUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        } else if (_images['birth_cert'] != null) {
+          final path = '$studentId/birth_cert_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, _images['birth_cert']!);
+          birthCertUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        }
+        
+        // Upload grades
+        if (kIsWeb && _imageBytes['grades'] != null) {
+          final path = '$studentId/grades_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').uploadBinary(path, _imageBytes['grades']!);
+          gradesUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        } else if (_images['grades'] != null) {
+          final path = '$studentId/grades_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, _images['grades']!);
+          gradesUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        }
+        
+        // Upload cor
+        if (kIsWeb && _imageBytes['cor'] != null) {
+          final path = '$studentId/cor_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').uploadBinary(path, _imageBytes['cor']!);
+          corUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        } else if (_images['cor'] != null) {
+          final path = '$studentId/cor_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, _images['cor']!);
+          corUrl = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+        }
+      } catch (e) {
+        throw Exception('Failed to upload files: $e');
+      }
+
       await Supabase.instance.client.from('renew').insert({
         'application_id': applicationId,
         'user_id': userId,
@@ -228,6 +293,11 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
         'gwa': double.tryParse(_controllers['gwa']!.text),
         'reason': _controllers['reason']!.text,
         'status': 'pending',
+        'school_id_path': schoolIdUrl ?? '',
+        'id_picture_path': idPictureUrl ?? '',
+        'birth_certificate_path': birthCertUrl ?? '',
+        'grades_path': gradesUrl ?? '',
+        'cor_path': corUrl ?? '',
       });
       
       if (!mounted) return;
