@@ -257,6 +257,12 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
         throw Exception('Failed to upload files: $e');
       }
 
+      // Debug: Print URLs to verify they were generated
+      print('School ID URL: $schoolIdUrl');
+      print('ID Picture URL: $idPictureUrl');
+      print('Birth Cert URL: $birthCertUrl');
+      print('Grades URL: $gradesUrl');
+
       // Prepare application data matching your table structure
       final applicationData = {
         'user_id': userId,
@@ -277,10 +283,10 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
         'scholarship_type': 'New Application',
         'status': 'pending',
         'archived': false,
-        'school_id_path': schoolIdUrl,
-        'id_picture_path': idPictureUrl,
-        'birth_certificate_path': birthCertUrl,
-        'grades_path': gradesUrl,
+        'school_id_path': schoolIdUrl ?? '',
+        'id_picture_path': idPictureUrl ?? '',
+        'birth_certificate_path': birthCertUrl ?? '',
+        'grades_path': gradesUrl ?? '',
       };
 
       await ApiService.submitApplication(applicationData);
