@@ -775,7 +775,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   }
 
   Widget _buildDocumentRow(String label, String path) {
-    final hasFile = path.isNotEmpty;
+    final hasFile = path.isNotEmpty && path.startsWith('http');
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
