@@ -16,26 +16,7 @@ class StudentDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAFC),
       appBar: AppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Color(0xFF667EEA)),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: Row(
-          children: [
-            ClipOval(
-              child: Image.asset(
-                'assets/images/majayjay.jpg',
-                width: 32,
-                height: 32,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text('🎓 Majayjay Scholars'),
-          ],
-        ),
+        title: const Text('🎓 Majayjay Scholars'),
       ),
       drawer: AppDrawer(
         userType: 'student',
@@ -153,12 +134,12 @@ class StudentDashboard extends StatelessWidget {
                     onPressed: () async {
                       try {
                         final result = await Supabase.instance.client
-                            .from('system_settings')
-                            .select('renewal_open')
+                            .from('renewal_settings')
+                            .select('is_open')
                             .eq('id', 1)
                             .maybeSingle();
                         
-                        final isOpen = result?['renewal_open'] ?? false;
+                        final isOpen = result?['is_open'] ?? false;
                         
                         if (!context.mounted) return;
                         
@@ -174,7 +155,7 @@ class StudentDashboard extends StatelessWidget {
                                   Text('Renewal Closed'),
                                 ],
                               ),
-                              content: const Text('The renewal period is currently closed. Please check back later or contact the administrator.'),
+                              content: const Text('The renewal period is currently closed.'),
                               actions: [
                                 ElevatedButton(
                                   onPressed: () => Navigator.pop(context),

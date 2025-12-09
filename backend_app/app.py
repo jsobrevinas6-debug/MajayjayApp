@@ -537,12 +537,12 @@ def get_renewal_status():
     try:
         conn = get_db_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute("SELECT renewal_open FROM system_settings WHERE id = 1")
+        cur.execute("SELECT is_open FROM renewal_settings WHERE id = 1")
         result = cur.fetchone()
         cur.close()
         conn.close()
         
-        is_open = result['renewal_open'] if result else False
+        is_open = result['is_open'] if result else False
         return jsonify({"is_open": is_open})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -564,9 +564,9 @@ def update_renewal_status():
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         cur.execute(
-            """INSERT INTO system_settings (id, renewal_open, updated_at) 
+            """INSERT INTO renewal_settings (id, is_open, updated_at) 
                VALUES (1, %s, NOW()) 
-               ON CONFLICT (id) DO UPDATE SET renewal_open = %s, updated_at = NOW()
+               ON CONFLICT (id) DO UPDATE SET is_open = %s, updated_at = NOW()
                RETURNING *""",
             (is_open, is_open)
         )
@@ -575,7 +575,7 @@ def update_renewal_status():
         cur.close()
         conn.close()
         
-        return jsonify({"message": "Renewal status updated", "is_open": result['renewal_open']})
+        return jsonify({"message": "Renewal status updated", "is_open": result['is_open']})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

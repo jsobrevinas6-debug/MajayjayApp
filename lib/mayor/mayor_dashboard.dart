@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_application_2/widgets/app_drawer.dart';
 
 void main() {
   runApp(const MayorDashboardApp());
@@ -23,140 +21,145 @@ class MayorDashboardApp extends StatelessWidget {
   }
 }
 
-class MayorDashboardPage extends StatefulWidget {
+class MayorDashboardPage extends StatelessWidget {
   const MayorDashboardPage({super.key});
-
-  @override
-  State<MayorDashboardPage> createState() => _MayorDashboardPageState();
-}
-
-class _MayorDashboardPageState extends State<MayorDashboardPage> {
-  bool _renewalIsOpen = false;
-  bool _isLoading = true;
-  int _totalNew = 0;
-  int _approvedNew = 0;
-  int _pendingNew = 0;
-  int _rejectedNew = 0;
-  int _totalRenewals = 0;
-  int _approvedRenewals = 0;
-  int _pendingRenewals = 0;
-  int _rejectedRenewals = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadRenewalStatus();
-    _loadStatistics();
-  }
-
-  Future<void> _loadRenewalStatus() async {
-    try {
-      final result = await Supabase.instance.client
-          .from('system_settings')
-          .select('renewal_open')
-          .eq('id', 1)
-          .maybeSingle();
-      
-      setState(() {
-        _renewalIsOpen = result?['renewal_open'] ?? false;
-      });
-    } catch (e) {
-      // Handle error silently
-    }
-  }
-
-  Future<void> _loadStatistics() async {
-    try {
-      final apps = await Supabase.instance.client
-          .from('application')
-          .select();
-      
-      final renewals = await Supabase.instance.client
-          .from('renew')
-          .select();
-      
-      setState(() {
-        _totalNew = apps.length;
-        _approvedNew = apps.where((a) => a['status'] == 'approved').length;
-        _pendingNew = apps.where((a) => a['status'] == 'pending').length;
-        _rejectedNew = apps.where((a) => a['status'] == 'rejected').length;
-        
-        _totalRenewals = renewals.length;
-        _approvedRenewals = renewals.where((r) => r['status'] == 'approved').length;
-        _pendingRenewals = renewals.where((r) => r['status'] == 'pending').length;
-        _rejectedRenewals = renewals.where((r) => r['status'] == 'rejected').length;
-        
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _toggleRenewalStatus() async {
-    try {
-      final newStatus = !_renewalIsOpen;
-      
-      await Supabase.instance.client
-          .from('system_settings')
-          .upsert({'id': 1, 'renewal_open': newStatus, 'updated_at': DateTime.now().toIso8601String()});
-      
-      setState(() => _renewalIsOpen = newStatus);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Renewal is now ${newStatus ? "OPEN" : "CLOSED"}'),
-            backgroundColor: newStatus ? Colors.green : Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        automaticallyImplyLeading: false,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.grey),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.account_balance, color: Colors.grey),
-            SizedBox(width: 12),
-            Text(
-              'Mayor Dashboard',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
+      body: Row(
+        children: [
+          // Sidebar
+          Container(
+            width: 220,
+            color: Colors.white,
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
+                // Logo
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey.shade300, width: 2),
+                  ),
+                  child: const Icon(
+                    Icons.location_city,
+                    size: 40,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'MajayjayScholars',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Menu Items
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListTile(
+                    leading: const Icon(Icons.dashboard, color: Colors.white),
+                    title: const Text(
+                      'Mayor Dashboard',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    dense: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: const Icon(Icons.people, color: Colors.grey),
+                  title: const Text(
+                    'View Scholars',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  dense: true,
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  leading: const Icon(Icons.folder, color: Colors.grey),
+                  title: const Text(
+                    'Scholar Records',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  dense: true,
+                ),
+                const Spacer(),
+                // Logout Button
+                Container(
+                  margin: const EdgeInsets.all(12),
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6366F1),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-          ],
-        ),
-      ),
-      drawer: const AppDrawer(
-        userType: 'mayor',
-        userName: '',
-        userEmail: '',
-      ),
-      body: SingleChildScrollView(
+          ),
+          // Main Content
+          Expanded(
+            child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(30),
+                    color: Colors.white,
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.menu),
+                          onPressed: () {},
+                        ),
+                        const SizedBox(width: 12),
+                        const Icon(Icons.account_balance, color: Colors.grey),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Mayor Dashboard',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   // Welcome Section
                   Container(
                     margin: const EdgeInsets.all(30),
@@ -225,7 +228,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.bar_chart,
-                            number: _totalNew.toString(),
+                            number: '4',
                             label: 'TOTAL NEW',
                             color: Colors.blue,
                           ),
@@ -234,7 +237,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.check_circle,
-                            number: _approvedNew.toString(),
+                            number: '1',
                             label: 'APPROVED',
                             color: Colors.green,
                           ),
@@ -243,7 +246,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.hourglass_empty,
-                            number: _pendingNew.toString(),
+                            number: '1',
                             label: 'PENDING',
                             color: Colors.orange,
                           ),
@@ -252,7 +255,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.cancel,
-                            number: _rejectedNew.toString(),
+                            number: '2',
                             label: 'REJECTED',
                             color: Colors.red,
                           ),
@@ -275,47 +278,6 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: _renewalIsOpen ? Colors.green.shade100 : Colors.red.shade100,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: _renewalIsOpen ? Colors.green : Colors.red,
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                _renewalIsOpen ? Icons.lock_open : Icons.lock,
-                                size: 16,
-                                color: _renewalIsOpen ? Colors.green : Colors.red,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _renewalIsOpen ? 'OPEN' : 'CLOSED',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: _renewalIsOpen ? Colors.green : Colors.red,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        ElevatedButton.icon(
-                          onPressed: _isLoading ? null : _toggleRenewalStatus,
-                          icon: Icon(_renewalIsOpen ? Icons.lock : Icons.lock_open, size: 18),
-                          label: Text(_renewalIsOpen ? 'Close Renewal' : 'Open Renewal'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _renewalIsOpen ? Colors.red : Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -327,7 +289,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.description,
-                            number: _totalRenewals.toString(),
+                            number: '3',
                             label: 'TOTAL RENEWALS',
                             color: Colors.blue,
                           ),
@@ -336,7 +298,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.check_circle,
-                            number: _approvedRenewals.toString(),
+                            number: '2',
                             label: 'APPROVED',
                             color: Colors.green,
                           ),
@@ -345,7 +307,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.hourglass_empty,
-                            number: _pendingRenewals.toString(),
+                            number: '0',
                             label: 'PENDING',
                             color: Colors.orange,
                           ),
@@ -354,7 +316,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                         Expanded(
                           child: _buildStatCard(
                             icon: Icons.cancel,
-                            number: _rejectedRenewals.toString(),
+                            number: '0',
                             label: 'REJECTED',
                             color: Colors.red,
                           ),
@@ -408,7 +370,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                             children: [
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: (_totalNew + _totalRenewals).toString(),
+                                  number: '7',
                                   label: 'TOTAL APPLICATIONS',
                                   color: Colors.blue.shade100,
                                 ),
@@ -416,7 +378,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: (_approvedNew + _approvedRenewals).toString(),
+                                  number: '3',
                                   label: 'TOTAL APPROVED',
                                   color: Colors.blue.shade100,
                                 ),
@@ -424,7 +386,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: (_pendingNew + _pendingRenewals).toString(),
+                                  number: '1',
                                   label: 'TOTAL PENDING',
                                   color: Colors.blue.shade100,
                                 ),
@@ -432,7 +394,7 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                               const SizedBox(width: 16),
                               Expanded(
                                 child: _buildSummaryCard(
-                                  number: (_rejectedNew + _rejectedRenewals).toString(),
+                                  number: '2',
                                   label: 'TOTAL REJECTED',
                                   color: Colors.blue.shade100,
                                 ),
@@ -447,6 +409,9 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
     );
   }
 
