@@ -7,7 +7,6 @@ import 'package:flutter_application_2/student/renewal_scholarship_screen.dart';
 import 'package:flutter_application_2/admin/add_admin.dart';
 import 'package:flutter_application_2/admin/admin_dashboard.dart';
 import 'package:flutter_application_2/mayor/mayor_dashboard.dart';
-import 'package:flutter_application_2/mayor/view_scholars(mayor).dart';
 import 'package:flutter_application_2/mayor/view_scholar_records(mayor).dart';
 
 
@@ -170,13 +169,6 @@ class AppDrawer extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (context) => const MayorDashboardPage(),
-                ),
-              );
-            } else if (title == '👥 View Scholars') {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ViewScholarsScreen(),
                 ),
               );
             } else if (title == '📁 Scholar Records') {
