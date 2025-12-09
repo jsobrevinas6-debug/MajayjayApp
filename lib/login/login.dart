@@ -85,13 +85,16 @@ class _LoginPageState extends State<LoginPage> {
         if (error.toString().contains('Invalid login credentials')) {
           errorMessage = 'Invalid email or password';
         } else if (error.toString().contains('Email not confirmed')) {
-          errorMessage = 'Please verify your email first';
+          errorMessage = 'Please check your email and click the confirmation link before logging in';
+        } else if (error.toString().contains('Email link is invalid or has expired')) {
+          errorMessage = 'Confirmation link expired. Please register again';
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: const Color(0xFFF56565),
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -172,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                             labelText: 'Email Address',
-                            hintText: 'Enter your email',
+                            hintText: '',
                             prefixIcon: const Icon(Icons.email_rounded, size: 20),
                             filled: true,
                             fillColor: const Color(0xFFF7FAFC),
@@ -202,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                           obscureText: _obscurePassword,
                           decoration: InputDecoration(
                             labelText: 'Password',
-                            hintText: 'Enter your password',
+                            hintText: '',
                             prefixIcon: const Icon(Icons.lock_rounded, size: 20),
                             suffixIcon: IconButton(
                               icon: Icon(

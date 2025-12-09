@@ -203,18 +203,72 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
       // Get current year
       final currentYear = DateTime.now().year;
 
+      // Upload files to Supabase Storage and get URLs
+      String? schoolIdUrl, idPictureUrl, birthCertUrl, gradesUrl;
+      
+      try {
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final studentId = _controllers['studentId']!.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+        
+        // Upload school_id
+        if (kIsWeb && _imageBytes['school_id'] != null) {
+          final path = 'scholarship-documents/$studentId/school_id_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['school_id']!);
+          schoolIdUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        } else if (_images['school_id'] != null) {
+          final path = 'scholarship-documents/$studentId/school_id_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['school_id']!);
+          schoolIdUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        }
+        
+        // Upload id_picture
+        if (kIsWeb && _imageBytes['id_picture'] != null) {
+          final path = 'scholarship-documents/$studentId/id_picture_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['id_picture']!);
+          idPictureUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        } else if (_images['id_picture'] != null) {
+          final path = 'scholarship-documents/$studentId/id_picture_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['id_picture']!);
+          idPictureUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        }
+        
+        // Upload birth_cert
+        if (kIsWeb && _imageBytes['birth_cert'] != null) {
+          final path = 'scholarship-documents/$studentId/birth_cert_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['birth_cert']!);
+          birthCertUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        } else if (_images['birth_cert'] != null) {
+          final path = 'scholarship-documents/$studentId/birth_cert_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['birth_cert']!);
+          birthCertUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        }
+        
+        // Upload grades
+        if (kIsWeb && _imageBytes['grades'] != null) {
+          final path = 'scholarship-documents/$studentId/grades_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').uploadBinary(path, _imageBytes['grades']!);
+          gradesUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        } else if (_images['grades'] != null) {
+          final path = 'scholarship-documents/$studentId/grades_$timestamp.jpg';
+          await Supabase.instance.client.storage.from('scholarship-documents').upload(path, _images['grades']!);
+          gradesUrl = Supabase.instance.client.storage.from('scholarship-documents').getPublicUrl(path);
+        }
+      } catch (e) {
+        throw Exception('Failed to upload files: $e');
+      }
+
       // Prepare application data matching your table structure
       final applicationData = {
-        'user_id': userId,  // Now correctly passing UUID as String
+        'user_id': userId,
         'student_id': _controllers['studentId']!.text,
         'first_name': _controllers['firstName']!.text,
         'middle_name': _controllers['middleName']!.text.isNotEmpty ? _controllers['middleName']!.text : null,
         'last_name': _controllers['surname']!.text,
         'contact_number': _controllers['contact']!.text,
         'address': _controllers['houseStreet']!.text,
-        'municipality': 'Majayjay', // You can make this dynamic if needed
+        'municipality': 'Majayjay',
         'baranggay': _selectedBarangay,
-        'school_name': null, // Add school name field to your form if needed
+        'school_name': null,
         'course': _controllers['course']!.text,
         'year_level': _selectedGradeLevel,
         'gwa': double.tryParse(_controllers['gwa']!.text),
@@ -223,12 +277,10 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
         'scholarship_type': 'New Application',
         'status': 'pending',
         'archived': false,
-        // Note: File upload URLs would need to be handled separately with Supabase Storage
-        // For now, storing file names as placeholders
-        'school_id': kIsWeb ? _imageNames['school_id'] : _images['school_id']?.path.split('/').last,
-        'id_picture': kIsWeb ? _imageNames['id_picture'] : _images['id_picture']?.path.split('/').last,
-        'birth_certificate': kIsWeb ? _imageNames['birth_cert'] : _images['birth_cert']?.path.split('/').last,
-        'grades': kIsWeb ? _imageNames['grades'] : _images['grades']?.path.split('/').last,
+        'school_id_path': schoolIdUrl,
+        'id_picture_path': idPictureUrl,
+        'birth_certificate_path': birthCertUrl,
+        'grades_path': gradesUrl,
       };
 
       await ApiService.submitApplication(applicationData);

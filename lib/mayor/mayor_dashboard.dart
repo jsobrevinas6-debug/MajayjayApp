@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_2/mayor/view_scholars(mayor).dart';
-import 'package:flutter_application_2/mayor/view_scholar_records(mayor).dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_application_2/widgets/app_drawer.dart';
 
 void main() {
   runApp(const MayorDashboardApp());
@@ -88,167 +87,49 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 220,
-            color: Colors.white,
-            child: Column(
-              children: [
-                const SizedBox(height: 30),
-                // Logo
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blue.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/majayjay.jpg',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'MajayjayScholars',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                // Menu Items
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ListTile(
-                    leading: const Icon(Icons.dashboard, color: Colors.white),
-                    title: const Text(
-                      'Mayor Dashboard',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    dense: true,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  leading: const Icon(Icons.people, color: Colors.grey),
-                  title: const Text(
-                    'View Scholars',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  dense: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ViewScholarsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                ListTile(
-                  leading: const Icon(Icons.folder, color: Colors.grey),
-                  title: const Text(
-                    'Scholar Records',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  dense: true,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ScholarRecordsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const Spacer(),
-                // Logout Button
-                Container(
-                  margin: const EdgeInsets.all(12),
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      await Supabase.instance.client.auth.signOut();
-                      if (context.mounted) {
-                        Navigator.of(context).pushReplacementNamed('/');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.grey),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
-          // Main Content
-          Expanded(
-            child: SingleChildScrollView(
+        ),
+        title: Row(
+          children: [
+            ClipOval(
+              child: Image.asset(
+                'assets/images/majayjay.jpg',
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Icon(Icons.account_balance, color: Colors.grey),
+            const SizedBox(width: 12),
+            const Text(
+              'Mayor Dashboard',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+      ),
+      drawer: const AppDrawer(
+        userType: 'mayor',
+        userName: '',
+        userEmail: '',
+      ),
+      body: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(30),
-                    color: Colors.white,
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.menu),
-                          onPressed: () {},
-                        ),
-                        const SizedBox(width: 12),
-                        const Icon(Icons.account_balance, color: Colors.grey),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Mayor Dashboard',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   // Welcome Section
                   Container(
                     margin: const EdgeInsets.all(30),
@@ -539,9 +420,6 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                 ],
               ),
             ),
-          ),
-        ],
-      ),
     );
   }
 

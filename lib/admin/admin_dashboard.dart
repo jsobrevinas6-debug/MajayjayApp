@@ -11,11 +11,15 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   final TextEditingController _searchController = TextEditingController();
-  String _adminName = 'Admin';
-  String _adminEmail = 'admin@example.com';
+  String _adminName = '';
+  String _adminEmail = '';
   List<Map<String, dynamic>> _users = [];
   List<Map<String, dynamic>> _filteredUsers = [];
   bool _isLoading = true;
+  int _currentPage = 1;
+  final int _rowsPerPage = 10;
+  String _sortColumn = 'id';
+  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -87,8 +91,46 @@ class _AdminDashboardState extends State<AdminDashboard> {
               user['role'].toLowerCase().contains(query.toLowerCase());
         }).toList();
       }
+      _currentPage = 1;
+      _sortUsers();
     });
   }
+
+  void _sortUsers() {
+    _filteredUsers.sort((a, b) {
+      dynamic aValue = a[_sortColumn];
+      dynamic bValue = b[_sortColumn];
+      
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+      
+      int comparison = aValue.toString().toLowerCase().compareTo(bValue.toString().toLowerCase());
+      return _sortAscending ? comparison : -comparison;
+    });
+  }
+
+  void _onSort(String column) {
+    setState(() {
+      if (_sortColumn == column) {
+        _sortAscending = !_sortAscending;
+      } else {
+        _sortColumn = column;
+        _sortAscending = true;
+      }
+      _sortUsers();
+    });
+  }
+
+  List<Map<String, dynamic>> get _paginatedUsers {
+    final startIndex = (_currentPage - 1) * _rowsPerPage;
+    final endIndex = startIndex + _rowsPerPage;
+    return _filteredUsers.sublist(
+      startIndex,
+      endIndex > _filteredUsers.length ? _filteredUsers.length : endIndex,
+    );
+  }
+
+  int get _totalPages => (_filteredUsers.length / _rowsPerPage).ceil();
 
   int get totalUsers => _users.length;
   int get mayorCount => _users.where((u) => u['role'] == 'mayor').length;
@@ -289,63 +331,71 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       headingRowColor: WidgetStateProperty.all(
                         Colors.grey[50],
                       ),
-                      columns: const [
+                      sortColumnIndex: ['id', 'firstName', 'middleName', 'lastName', 'email', 'role'].indexOf(_sortColumn),
+                      sortAscending: _sortAscending,
+                      columns: [
                         DataColumn(
-                          label: Text(
+                          label: const Text(
                             'User ID',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          onSort: (_, __) => _onSort('id'),
                         ),
                         DataColumn(
-                          label: Text(
+                          label: const Text(
                             'First Name',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          onSort: (_, __) => _onSort('firstName'),
                         ),
                         DataColumn(
-                          label: Text(
+                          label: const Text(
                             'Middle Name',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          onSort: (_, __) => _onSort('middleName'),
                         ),
                         DataColumn(
-                          label: Text(
+                          label: const Text(
                             'Last Name',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          onSort: (_, __) => _onSort('lastName'),
                         ),
                         DataColumn(
-                          label: Text(
+                          label: const Text(
                             'Email',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          onSort: (_, __) => _onSort('email'),
                         ),
                         DataColumn(
-                          label: Text(
+                          label: const Text(
                             'Role',
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF666666),
                             ),
                           ),
+                          onSort: (_, __) => _onSort('role'),
                         ),
                       ],
-                      rows: _filteredUsers.map((user) {
+                      rows: _paginatedUsers.map((user) {
                         return DataRow(
                           cells: [
                             DataCell(Text(user['id'].toString())),
@@ -367,7 +417,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Showing 1 to ${_filteredUsers.length} of ${_filteredUsers.length} entries',
+                          'Showing ${(_currentPage - 1) * _rowsPerPage + 1} to ${(_currentPage * _rowsPerPage) > _filteredUsers.length ? _filteredUsers.length : (_currentPage * _rowsPerPage)} of ${_filteredUsers.length} entries',
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.grey[600],
@@ -376,37 +426,45 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         Row(
                           children: [
                             TextButton(
-                              onPressed: null,
+                              onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
                               child: Text(
                                 'Previous',
-                                style: TextStyle(color: Colors.grey[400]),
+                                style: TextStyle(color: _currentPage > 1 ? const Color(0xFF5B6ADB) : Colors.grey[400]),
                               ),
                             ),
-                            Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF7A5AF5), Color(0xFF5B4AC7)],
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                '1',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                            ...List.generate(
+                              _totalPages > 5 ? 5 : _totalPages,
+                              (index) {
+                                int pageNum = _currentPage <= 3 ? index + 1 : _currentPage - 2 + index;
+                                if (pageNum > _totalPages) return const SizedBox.shrink();
+                                return GestureDetector(
+                                  onTap: () => setState(() => _currentPage = pageNum),
+                                  child: Container(
+                                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      gradient: _currentPage == pageNum
+                                          ? const LinearGradient(colors: [Color(0xFF7A5AF5), Color(0xFF5B4AC7)])
+                                          : null,
+                                      color: _currentPage == pageNum ? null : Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      pageNum.toString(),
+                                      style: TextStyle(
+                                        color: _currentPage == pageNum ? Colors.white : Colors.grey[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                             TextButton(
-                              onPressed: null,
+                              onPressed: _currentPage < _totalPages ? () => setState(() => _currentPage++) : null,
                               child: Text(
                                 'Next',
-                                style: TextStyle(color: Colors.grey[400]),
+                                style: TextStyle(color: _currentPage < _totalPages ? const Color(0xFF5B6ADB) : Colors.grey[400]),
                               ),
                             ),
                           ],

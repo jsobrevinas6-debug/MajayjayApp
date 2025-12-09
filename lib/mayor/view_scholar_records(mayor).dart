@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_application_2/widgets/app_drawer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 extension StringExtension on String {
   String capitalize() {
@@ -21,6 +23,10 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   String _searchQuery = '';
   List<Map<String, dynamic>> _applications = [];
   bool _isLoading = true;
+  int _currentPage = 1;
+  final int _rowsPerPage = 10;
+  int? _sortColumnIndex;
+  bool _sortAscending = true;
 
   @override
   void initState() {
@@ -49,6 +55,13 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
           'status': (app['status'] ?? 'pending').toString().capitalize(),
           'dateApplied': app['submission_date']?.toString().split('T')[0] ?? 'N/A',
           'application_id': app['application_id'],
+          'address': app['address'] ?? 'N/A',
+          'reason': app['reason'] ?? 'N/A',
+          'schoolId': app['school_id_path'] ?? '',
+          'idPicture': app['id_picture_path'] ?? '',
+          'birthCert': app['birth_certificate_path'] ?? '',
+          'grades': app['grades_path'] ?? '',
+          'cor': app['cor_path'] ?? '',
         }).toList();
         _isLoading = false;
       });
@@ -60,6 +73,31 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
         );
       }
     }
+  }
+
+  void _sortApplications(int columnIndex, bool ascending) {
+    setState(() {
+      _sortColumnIndex = columnIndex;
+      _sortAscending = ascending;
+      
+      _applications.sort((a, b) {
+        dynamic aValue, bValue;
+        switch (columnIndex) {
+          case 0: aValue = a['id']; bValue = b['id']; break;
+          case 1: aValue = a['firstName']; bValue = b['firstName']; break;
+          case 2: aValue = a['middleName']; bValue = b['middleName']; break;
+          case 3: aValue = a['lastName']; bValue = b['lastName']; break;
+          case 4: aValue = a['studentId']; bValue = b['studentId']; break;
+          case 5: aValue = a['course']; bValue = b['course']; break;
+          case 6: aValue = a['year']; bValue = b['year']; break;
+          case 7: aValue = a['gwa']; bValue = b['gwa']; break;
+          case 8: aValue = a['status']; bValue = b['status']; break;
+          case 9: aValue = a['dateApplied']; bValue = b['dateApplied']; break;
+          default: return 0;
+        }
+        return ascending ? Comparable.compare(aValue, bValue) : Comparable.compare(bValue, aValue);
+      });
+    });
   }
 
   List<Map<String, dynamic>> get _filteredApplications {
@@ -86,6 +124,17 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
     return filtered;
   }
 
+  List<Map<String, dynamic>> get _paginatedApplications {
+    final startIndex = (_currentPage - 1) * _rowsPerPage;
+    final endIndex = startIndex + _rowsPerPage;
+    return _filteredApplications.sublist(
+      startIndex,
+      endIndex > _filteredApplications.length ? _filteredApplications.length : endIndex,
+    );
+  }
+
+  int get _totalPages => (_filteredApplications.length / _rowsPerPage).ceil();
+
   int get _totalCount => _applications.length;
   int get _approvedCount => _applications.where((app) => app['status'] == 'Approved').length;
   int get _pendingCount => _applications.where((app) => app['status'] == 'Pending').length;
@@ -102,17 +151,38 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      body: Row(
-        children: [
-          // Sidebar
-          _buildSidebar(),
-          // Main Content
-          Expanded(
-            child: Column(
-              children: [
-                _buildHeader(),
-                Expanded(
-                  child: SingleChildScrollView(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.grey),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.folder, color: Colors.grey),
+            const SizedBox(width: 12),
+            const Text(
+              'Scholar Records',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+
+      ),
+      drawer: const AppDrawer(
+        userType: 'mayor',
+        userName: '',
+        userEmail: '',
+      ),
+      body: SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(30),
                       child: Column(
@@ -131,127 +201,6 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebar() {
-    return Container(
-      width: 220,
-      color: Colors.white,
-      child: Column(
-        children: [
-          const SizedBox(height: 30),
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.shade300, width: 2),
-            ),
-            child: const Icon(Icons.location_city, size: 40, color: Colors.blue),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'MajayjayScholars',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.blue,
-            ),
-          ),
-          const SizedBox(height: 30),
-          _buildSidebarItem(Icons.dashboard, 'Mayor Dashboard', false),
-          const SizedBox(height: 8),
-          _buildSidebarItem(Icons.people, 'View Scholars', false),
-          const SizedBox(height: 8),
-          _buildSidebarItem(Icons.folder, 'Scholar Records', true),
-          const Spacer(),
-          Container(
-            margin: const EdgeInsets.all(12),
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text(
-                'Logout',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebarItem(IconData icon, String title, bool isActive) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF6366F1) : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: isActive ? Colors.white : Colors.grey),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        dense: true,
-        onTap: () {
-          if (!isActive) Navigator.pop(context);
-        },
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(30),
-      color: Colors.white,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              IconButton(icon: const Icon(Icons.menu), onPressed: () {}),
-              const SizedBox(width: 12),
-              const Icon(Icons.folder, color: Colors.grey),
-              const SizedBox(width: 12),
-              const Text(
-                'Scholar Records',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back, size: 18),
-            label: const Text('Back to Dashboard'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -367,7 +316,10 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
         SizedBox(
           width: 300,
           child: TextField(
-            onChanged: (value) => setState(() => _searchQuery = value),
+            onChanged: (value) => setState(() {
+              _searchQuery = value;
+              _currentPage = 1;
+            }),
             decoration: InputDecoration(
               hintText: 'Search by name, ID, course, status...',
               prefixIcon: const Icon(Icons.search, size: 20),
@@ -392,7 +344,10 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
       child: FilterChip(
         label: Text(label),
         selected: isSelected,
-        onSelected: (selected) => setState(() => _selectedFilter = label),
+        onSelected: (selected) => setState(() {
+          _selectedFilter = label;
+          _currentPage = 1;
+        }),
         backgroundColor: Colors.white,
         selectedColor: const Color(0xFF6366F1),
         labelStyle: TextStyle(
@@ -428,21 +383,22 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
             scrollDirection: Axis.horizontal,
             child: DataTable(
               headingRowColor: WidgetStateProperty.all(Colors.grey.shade50),
-              columns: const [
-                DataColumn(label: Text('ID', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('First Name', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Middle Name', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Student ID', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Course', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Year', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('GWA', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Type', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Status', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Date Applied', style: TextStyle(fontWeight: FontWeight.bold))),
-                DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+              sortColumnIndex: _sortColumnIndex,
+              sortAscending: _sortAscending,
+              columns: [
+                DataColumn(label: const Text('ID', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('First Name', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Middle Name', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Student ID', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Course', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Year', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('GWA', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Status', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                DataColumn(label: const Text('Date Applied', style: TextStyle(fontWeight: FontWeight.bold)), onSort: (columnIndex, ascending) => _sortApplications(columnIndex, ascending)),
+                const DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
               ],
-              rows: _filteredApplications.map((app) {
+              rows: _paginatedApplications.map((app) {
                 return DataRow(cells: [
                   DataCell(Text(app['id'])),
                   DataCell(Text(app['firstName'])),
@@ -452,7 +408,6 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
                   DataCell(Text(app['course'])),
                   DataCell(Text(app['year'])),
                   DataCell(Text(app['gwa'], style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold))),
-                  DataCell(_buildTypeBadge(app['type'])),
                   DataCell(_buildStatusBadge(app['status'])),
                   DataCell(Text(app['dateApplied'])),
                   DataCell(_buildActionButtons(app)),
@@ -460,21 +415,56 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
               }).toList(),
             ),
           ),
+          if (_totalPages > 1)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Showing ${(_currentPage - 1) * _rowsPerPage + 1} to ${(_currentPage * _rowsPerPage) > _filteredApplications.length ? _filteredApplications.length : (_currentPage * _rowsPerPage)} of ${_filteredApplications.length} entries',
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      ...List.generate(
+                        _totalPages > 5 ? 5 : _totalPages,
+                        (index) {
+                          final pageNum = _currentPage <= 3
+                              ? index + 1
+                              : (_currentPage >= _totalPages - 2
+                                  ? _totalPages - 4 + index
+                                  : _currentPage - 2 + index);
+                          if (pageNum < 1 || pageNum > _totalPages) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: ElevatedButton(
+                              onPressed: () => setState(() => _currentPage = pageNum),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _currentPage == pageNum ? const Color(0xFF6366F1) : Colors.white,
+                                foregroundColor: _currentPage == pageNum ? Colors.white : Colors.black,
+                                minimumSize: const Size(40, 40),
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: Text(pageNum.toString()),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        onPressed: _currentPage < _totalPages ? () => setState(() => _currentPage++) : null,
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTypeBadge(String type) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        type,
-        style: TextStyle(fontSize: 12, color: Colors.blue.shade700, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -560,9 +550,21 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
                 _buildDetailRow('Course', app['course']),
                 _buildDetailRow('Year Level', app['year']),
                 _buildDetailRow('GWA', app['gwa']),
-                _buildDetailRow('Type', app['type']),
+                _buildDetailRow('Address', app['address']),
+                _buildDetailRow('Reason', app['reason']),
                 _buildDetailRow('Status', app['status']),
                 _buildDetailRow('Date Applied', app['dateApplied']),
+                const SizedBox(height: 16),
+                const Text(
+                  '📎 Documents:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                _buildDocumentRow('🆔 School ID', app['schoolId']),
+                _buildDocumentRow('📷 2x2 ID Picture', app['idPicture']),
+                _buildDocumentRow('📋 Birth Certificate', app['birthCert']),
+                _buildDocumentRow('📊 Copy of Grades', app['grades']),
+                _buildDocumentRow('📄 COR', app['cor']),
               ],
             ),
           ),
@@ -645,6 +647,58 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
           Expanded(
             child: Text(value),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDocumentRow(String label, String path) {
+    final hasFile = path.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 14),
+            ),
+          ),
+          if (hasFile)
+            TextButton.icon(
+              onPressed: () async {
+                // Open URL in browser
+                final uri = Uri.parse(path);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: const Icon(Icons.visibility, size: 16),
+              label: const Text('View', style: TextStyle(fontSize: 12)),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF6366F1),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              ),
+            )
+          else
+            Row(
+              children: [
+                Icon(
+                  Icons.cancel,
+                  size: 16,
+                  color: Colors.red,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Missing',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );

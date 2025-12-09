@@ -5,6 +5,10 @@ import 'package:flutter_application_2/student/student_dashboard.dart';
 import 'package:flutter_application_2/student/apply_scholarship_screen.dart';
 import 'package:flutter_application_2/student/renewal_scholarship_screen.dart';
 import 'package:flutter_application_2/admin/add_admin.dart';
+import 'package:flutter_application_2/admin/admin_dashboard.dart';
+import 'package:flutter_application_2/mayor/mayor_dashboard.dart';
+import 'package:flutter_application_2/mayor/view_scholars(mayor).dart';
+import 'package:flutter_application_2/mayor/view_scholar_records(mayor).dart';
 
 
 class AppDrawer extends StatelessWidget {
@@ -148,11 +152,39 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ),
               );
+            } else if (title == '🏛 Admin Dashboard') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminDashboard(),
+                ),
+              );
             } else if (title == '👥 Add Admin Account') {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const AddAdminScreen(),
+                ),
+              );
+            } else if (title == '🏛 Mayor Dashboard') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MayorDashboardPage(),
+                ),
+              );
+            } else if (title == '👥 View Scholars') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ViewScholarsScreen(),
+                ),
+              );
+            } else if (title == '📁 Scholar Records') {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ScholarRecordsScreen(),
                 ),
               );
             } else {

@@ -355,7 +355,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           obscureText: !_isPasswordVisible,
           decoration: InputDecoration(
             labelText: 'Password',
-            hintText: _isEmailVerified ? 'Enter password' : 'Verify email first',
+            hintText: _isEmailVerified ? 'Enter password (min 6 characters)' : 'Verify email first',
             prefixIcon: const Icon(Icons.lock_rounded, size: 20),
             suffixIcon: _isEmailVerified ? IconButton(
               icon: Icon(
@@ -387,6 +387,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
           validator: (value) {
             if (!_isEmailVerified) return null;
             if (value == null || value.isEmpty) return 'Please enter password';
+            if (value.length < 6) return 'Password must be at least 6 characters';
             return null;
           },
         ),
@@ -472,7 +473,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
     try {
       await supabase.auth.signInWithOtp(
         email: _emailController.text.trim(),
-        shouldCreateUser: false,
+        shouldCreateUser: true,
       );
       setState(() {
         _isLoading = false;

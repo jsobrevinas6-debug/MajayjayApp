@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_application_2/widgets/app_drawer.dart';
 
 class AddAdminScreen extends StatefulWidget {
   const AddAdminScreen({super.key});
@@ -134,9 +135,11 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF5B6ADB)),
-          onPressed: () => Navigator.pop(context),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Color(0xFF5B6ADB)),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: const Text(
           'Add Admin Account',
@@ -146,6 +149,11 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
             fontSize: 20,
           ),
         ),
+      ),
+      drawer: AppDrawer(
+        userType: 'admin',
+        userName: '',
+        userEmail: '',
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -303,7 +311,7 @@ class _AddAdminScreenState extends State<AddAdminScreen> {
                     _buildTextField(
                       controller: _passwordController,
                       label: 'Password',
-                      hint: 'Enter password',
+                      hint: 'Enter password (min 6 characters)',
                       icon: Icons.lock,
                       obscureText: _obscurePassword,
                       suffixIcon: IconButton(

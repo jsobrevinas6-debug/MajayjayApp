@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_2/widgets/app_drawer.dart';
 
 class ViewScholarsScreen extends StatefulWidget {
   const ViewScholarsScreen({super.key});
@@ -24,180 +25,53 @@ class _ViewScholarsScreenState extends State<ViewScholarsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 220,
-            color: Colors.white,
-            child: Column(
-              children: [
-                const SizedBox(height: 30),
-                // Logo
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade300, width: 2),
-                  ),
-                  child: const Icon(
-                    Icons.location_city,
-                    size: 40,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'MajayjayScholars',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 30),
-                // Menu Items
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: ListTile(
-                    leading: const Icon(Icons.dashboard, color: Colors.grey),
-                    title: const Text(
-                      'Mayor Dashboard',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    dense: true,
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6366F1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ListTile(
-                    leading: const Icon(Icons.people, color: Colors.white),
-                    title: const Text(
-                      'View Scholars',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    dense: true,
-                    onTap: () {},
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: ListTile(
-                    leading: const Icon(Icons.folder, color: Colors.grey),
-                    title: const Text(
-                      'Scholar Records',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    dense: true,
-                    onTap: () {},
-                  ),
-                ),
-                const Spacer(),
-                // Logout Button
-                Container(
-                  margin: const EdgeInsets.all(12),
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/',
-                        (route) => false,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Logout',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        automaticallyImplyLeading: false,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.grey),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.people, color: Colors.grey),
+            const SizedBox(width: 12),
+            const Text(
+              'My Scholars',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton.icon(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.arrow_back, size: 18),
+            label: const Text('Back to Dashboard'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6366F1),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
-          // Main Content
-          Expanded(
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.all(30),
-                  color: Colors.white,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.menu),
-                            onPressed: () {},
-                          ),
-                          const SizedBox(width: 12),
-                          const Icon(Icons.people, color: Colors.grey),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'My Scholars',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        icon: const Icon(Icons.arrow_back, size: 18),
-                        label: const Text('Back to Dashboard'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF6366F1),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Content
-                Expanded(
-                  child: SingleChildScrollView(
+          const SizedBox(width: 20),
+        ],
+      ),
+      drawer: const AppDrawer(
+        userType: 'mayor',
+        userName: '',
+        userEmail: '',
+      ),
+      body: SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(30),
                       child: Column(
@@ -264,12 +138,6 @@ class _ViewScholarsScreenState extends State<ViewScholarsScreen> {
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

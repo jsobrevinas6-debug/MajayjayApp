@@ -16,16 +16,26 @@ class StudentDashboard extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAFC),
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ClipOval(
-            child: Image.asset(
-              'assets/images/majayjay.jpg',
-              fit: BoxFit.cover,
-            ),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Color(0xFF667EEA)),
+            onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: const Text('🎓 Majayjay Scholars'),
+        title: Row(
+          children: [
+            ClipOval(
+              child: Image.asset(
+                'assets/images/majayjay.jpg',
+                width: 32,
+                height: 32,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text('🎓 Majayjay Scholars'),
+          ],
+        ),
       ),
       drawer: AppDrawer(
         userType: 'student',
