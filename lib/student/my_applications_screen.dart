@@ -29,6 +29,87 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
     _fetchApplications();
   }
 
+  Future<void> _editApplication(Map<String, dynamic> app) async {
+    final studentIdController = TextEditingController(text: app['student_id']);
+    final courseController = TextEditingController(text: app['course']);
+    final yearLevelController = TextEditingController(text: app['year_level']);
+    final gwaController = TextEditingController(text: app['gwa']);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Application'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: studentIdController,
+                decoration: const InputDecoration(labelText: 'Student ID'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: courseController,
+                decoration: const InputDecoration(labelText: 'Course'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: yearLevelController,
+                decoration: const InputDecoration(labelText: 'Year Level'),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: gwaController,
+                decoration: const InputDecoration(labelText: 'GWA'),
+                keyboardType: TextInputType.number,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF667EEA)),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      try {
+        await Supabase.instance.client.from('application').update({
+          'student_id': studentIdController.text,
+          'course': courseController.text,
+          'year_level': yearLevelController.text,
+          'gwa': double.tryParse(gwaController.text),
+        }).eq('application_id', app['application_id']);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Application updated successfully'), backgroundColor: Colors.green),
+          );
+          _fetchApplications();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+
+    studentIdController.dispose();
+    courseController.dispose();
+    yearLevelController.dispose();
+    gwaController.dispose();
+  }
+
   Future<void> _fetchApplications() async {
     setState(() => _isLoading = true);
     try {
@@ -419,11 +500,7 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Edit feature coming soon. Contact admin for changes.'), backgroundColor: Colors.orange),
-                  );
-                },
+                onPressed: () => _editApplication(app),
                 icon: const Icon(Icons.edit, size: 16),
                 label: const Text('Edit Application'),
                 style: ElevatedButton.styleFrom(
