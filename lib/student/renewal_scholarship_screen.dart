@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_application_2/widgets/app_drawer.dart';
-import 'package:flutter_application_2/services/api_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class RenewScholarshipScreen extends StatefulWidget {
