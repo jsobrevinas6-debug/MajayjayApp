@@ -499,7 +499,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         setState(() => _isLoading = false);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('This email is already registered. Please login instead.'), backgroundColor: Colors.red),
+            const SnackBar(content: Text('The email is already registered'), backgroundColor: Colors.red),
           );
         }
         return;
