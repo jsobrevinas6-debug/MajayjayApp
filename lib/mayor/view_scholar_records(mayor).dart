@@ -789,12 +789,20 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
             TextButton.icon(
               onPressed: () async {
                 try {
+                  if (!path.startsWith('http')) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Invalid URL: $path')),
+                      );
+                    }
+                    return;
+                  }
                   final uri = Uri.parse(path);
-                  await launchUrl(uri, mode: LaunchMode.inAppWebView);
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error opening document: $e')),
+                      SnackBar(content: Text('URL: $path - Error: $e')),
                     );
                   }
                 }
