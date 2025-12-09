@@ -36,10 +36,18 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
 
   Future<void> _fetchApplications() async {
     try {
-      final apps = await Supabase.instance.client
+      var query = Supabase.instance.client
           .from('application')
-          .select()
-          .order('submission_date', ascending: false);
+          .select();
+      
+      // Filter based on selected tab
+      if (_selectedTab == 'Active Applications') {
+        query = query.eq('archived', false);
+      } else if (_selectedTab == 'Archived Applications') {
+        query = query.eq('archived', true);
+      }
+      
+      final apps = await query.order('submission_date', ascending: false);
 
       setState(() {
         _applications = apps.map<Map<String, dynamic>>((app) => {
@@ -290,7 +298,10 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   Widget _buildTabButton(String label, IconData icon) {
     final isSelected = _selectedTab == label;
     return ElevatedButton.icon(
-      onPressed: () => setState(() => _selectedTab = label),
+      onPressed: () {
+        setState(() => _selectedTab = label);
+        _fetchApplications();
+      },
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: ElevatedButton.styleFrom(
@@ -704,7 +715,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
     );
   }
 
-  void _archiveApplication(Map<String, dynamic> app) {
+  void _archiveApplication(Map<String, dynamic> app) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -716,11 +727,28 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Application ${app['id']} archived')),
-              );
+              try {
+                await Supabase.instance.client
+                    .from('application')
+                    .update({'archived': true})
+                    .eq('application_id', app['application_id']);
+                
+                await _fetchApplications();
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Application ${app['id']} archived')),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error archiving: $e')),
+                  );
+                }
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             child: const Text('Archive'),
