@@ -790,7 +790,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
               onPressed: () async {
                 try {
                   final uri = Uri.parse(path);
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                  await launchUrl(uri, mode: LaunchMode.inAppWebView);
                 } catch (e) {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
