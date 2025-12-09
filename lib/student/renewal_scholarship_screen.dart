@@ -280,6 +280,13 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
         throw Exception('Failed to upload files: $e');
       }
 
+      // Debug: Print URLs
+      print('School ID URL: $schoolIdUrl');
+      print('ID Picture URL: $idPictureUrl');
+      print('Birth Cert URL: $birthCertUrl');
+      print('Grades URL: $gradesUrl');
+      print('COR URL: $corUrl');
+
       await Supabase.instance.client.from('renew').insert({
         'application_id': applicationId,
         'user_id': userId,
