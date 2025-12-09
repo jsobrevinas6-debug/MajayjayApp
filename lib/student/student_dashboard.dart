@@ -153,12 +153,12 @@ class StudentDashboard extends StatelessWidget {
                     onPressed: () async {
                       try {
                         final result = await Supabase.instance.client
-                            .from('renewal_settings')
-                            .select('is_open')
+                            .from('system_settings')
+                            .select('renewal_open')
                             .eq('id', 1)
                             .maybeSingle();
                         
-                        final isOpen = result?['is_open'] ?? false;
+                        final isOpen = result?['renewal_open'] ?? false;
                         
                         if (!context.mounted) return;
                         
