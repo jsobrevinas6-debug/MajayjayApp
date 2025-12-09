@@ -97,20 +97,11 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
-        title: Row(
+        title: const Row(
           children: [
-            ClipOval(
-              child: Image.asset(
-                'assets/images/majayjay.jpg',
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Icon(Icons.account_balance, color: Colors.grey),
-            const SizedBox(width: 12),
-            const Text(
+            Icon(Icons.account_balance, color: Colors.grey),
+            SizedBox(width: 12),
+            Text(
               'Mayor Dashboard',
               style: TextStyle(
                 fontSize: 24,

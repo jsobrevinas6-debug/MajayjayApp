@@ -36,11 +36,6 @@ class AppDrawer extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                ),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF667EEA).withValues(alpha: 0.3),
@@ -49,7 +44,12 @@ class AppDrawer extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.school_rounded, size: 40, color: Colors.white),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/majayjay.jpg',
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
             const SizedBox(height: 15),
             ShaderMask(
