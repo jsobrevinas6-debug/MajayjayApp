@@ -525,6 +525,64 @@ def get_mayor_applications():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/application/<int:app_id>/archive", methods=["PUT", "OPTIONS"])
+def archive_application(app_id):
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    """Archive an application."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cur.execute(
+            "UPDATE application SET archived = TRUE WHERE application_id = %s RETURNING *",
+            (app_id,)
+        )
+        updated_app = cur.fetchone()
+        
+        if not updated_app:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Application not found"}), 404
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"message": "Application archived", "application": dict(updated_app)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/renewal/<int:renewal_id>/archive", methods=["PUT", "OPTIONS"])
+def archive_renewal(renewal_id):
+    if request.method == "OPTIONS":
+        return jsonify({"status": "ok"}), 200
+    """Archive a renewal."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        cur.execute(
+            "UPDATE renew SET archived = TRUE WHERE renewal_id = %s RETURNING *",
+            (renewal_id,)
+        )
+        updated_renewal = cur.fetchone()
+        
+        if not updated_renewal:
+            cur.close()
+            conn.close()
+            return jsonify({"error": "Renewal not found"}), 404
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({"message": "Renewal archived", "renewal": dict(updated_renewal)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # -----------------------------
 # Renewal Status Routes
 # -----------------------------

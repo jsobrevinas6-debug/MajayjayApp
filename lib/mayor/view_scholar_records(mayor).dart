@@ -22,6 +22,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   String _selectedFilter = 'All';
   String _searchQuery = '';
   List<Map<String, dynamic>> _applications = [];
+  List<Map<String, dynamic>> _renewals = [];
   bool _isLoading = true;
   int _currentPage = 1;
   final int _rowsPerPage = 10;
@@ -32,6 +33,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   void initState() {
     super.initState();
     _fetchApplications();
+    _fetchRenewals();
   }
 
   Future<void> _fetchApplications() async {
@@ -59,10 +61,11 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
           'course': app['course'] ?? 'N/A',
           'year': app['year_level'] ?? 'N/A',
           'gwa': app['gwa']?.toString() ?? 'N/A',
-          'type': app['scholarship_type'] ?? 'New Application',
+          'type': 'Application',
           'status': (app['status'] ?? 'pending').toString().capitalize(),
           'dateApplied': app['submission_date']?.toString().split('T')[0] ?? 'N/A',
           'application_id': app['application_id'],
+          'renewal_id': null,
           'address': app['address'] ?? 'N/A',
           'reason': app['reason'] ?? 'N/A',
           'schoolId': app['school_id_path'] ?? '',
@@ -78,6 +81,54 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error loading applications: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _fetchRenewals() async {
+    try {
+      var query = Supabase.instance.client
+          .from('renew')
+          .select();
+      
+      // Filter based on selected tab
+      if (_selectedTab == 'Renewal Applications') {
+        query = query.eq('archived', false);
+      } else if (_selectedTab == 'Archived Applications') {
+        query = query.eq('archived', true);
+      }
+      
+      final renewals = await query.order('submission_date', ascending: false);
+
+      setState(() {
+        _renewals = renewals.map<Map<String, dynamic>>((ren) => {
+          'id': '#R${ren['renewal_id']}',
+          'firstName': ren['first_name'] ?? '',
+          'middleName': ren['middle_name'] ?? '',
+          'lastName': ren['last_name'] ?? '',
+          'studentId': ren['student_id'] ?? 'N/A',
+          'course': ren['course'] ?? 'N/A',
+          'year': ren['year_level'] ?? 'N/A',
+          'gwa': ren['gwa']?.toString() ?? 'N/A',
+          'type': 'Renewal',
+          'status': (ren['status'] ?? 'pending').toString().capitalize(),
+          'dateApplied': ren['submission_date']?.toString().split('T')[0] ?? 'N/A',
+          'application_id': null,
+          'renewal_id': ren['renewal_id'],
+          'address': ren['address'] ?? 'N/A',
+          'reason': ren['reason'] ?? 'N/A',
+          'schoolId': ren['school_id'] ?? '',
+          'idPicture': ren['id_picture'] ?? '',
+          'birthCert': ren['birth_certificate'] ?? '',
+          'grades': ren['grades'] ?? '',
+          'cor': ren['cor'] ?? '',
+        }).toList();
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading renewals: $e')),
         );
       }
     }
@@ -109,7 +160,14 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   }
 
   List<Map<String, dynamic>> get _filteredApplications {
-    List<Map<String, dynamic>> filtered = _applications;
+    List<Map<String, dynamic>> filtered = [];
+    
+    // Select data based on tab
+    if (_selectedTab == 'Active Applications' || _selectedTab == 'Archived Applications') {
+      filtered = _applications;
+    } else if (_selectedTab == 'Renewal Applications') {
+      filtered = _renewals;
+    }
 
     // Apply status filter
     if (_selectedFilter != 'All') {
@@ -143,10 +201,31 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
 
   int get _totalPages => (_filteredApplications.length / _rowsPerPage).ceil();
 
-  int get _totalCount => _applications.length;
-  int get _approvedCount => _applications.where((app) => app['status'] == 'Approved').length;
-  int get _pendingCount => _applications.where((app) => app['status'] == 'Pending').length;
-  int get _rejectedCount => _applications.where((app) => app['status'] == 'Rejected').length;
+  int get _totalCount {
+    if (_selectedTab == 'Renewal Applications') return _renewals.length;
+    return _applications.length;
+  }
+  
+  int get _approvedCount {
+    if (_selectedTab == 'Renewal Applications') {
+      return _renewals.where((app) => app['status'] == 'Approved').length;
+    }
+    return _applications.where((app) => app['status'] == 'Approved').length;
+  }
+  
+  int get _pendingCount {
+    if (_selectedTab == 'Renewal Applications') {
+      return _renewals.where((app) => app['status'] == 'Pending').length;
+    }
+    return _applications.where((app) => app['status'] == 'Pending').length;
+  }
+  
+  int get _rejectedCount {
+    if (_selectedTab == 'Renewal Applications') {
+      return _renewals.where((app) => app['status'] == 'Rejected').length;
+    }
+    return _applications.where((app) => app['status'] == 'Rejected').length;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -301,6 +380,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
       onPressed: () {
         setState(() => _selectedTab = label);
         _fetchApplications();
+        _fetchRenewals();
       },
       icon: Icon(icon, size: 18),
       label: Text(label),
@@ -720,7 +800,7 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Archive Application'),
-        content: Text('Are you sure you want to archive application ${app['id']}?'),
+        content: Text('Are you sure you want to archive ${app['type']} ${app['id']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -730,16 +810,24 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
             onPressed: () async {
               Navigator.pop(context);
               try {
-                await Supabase.instance.client
-                    .from('application')
-                    .update({'archived': true})
-                    .eq('application_id', app['application_id']);
+                if (app['type'] == 'Application') {
+                  await Supabase.instance.client
+                      .from('application')
+                      .update({'archived': true})
+                      .eq('application_id', app['application_id']);
+                } else {
+                  await Supabase.instance.client
+                      .from('renew')
+                      .update({'archived': true})
+                      .eq('renewal_id', app['renewal_id']);
+                }
                 
                 await _fetchApplications();
+                await _fetchRenewals();
                 
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Application ${app['id']} archived')),
+                    SnackBar(content: Text('${app['type']} ${app['id']} archived')),
                   );
                 }
               } catch (e) {
