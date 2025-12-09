@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_2/widgets/app_drawer.dart';
 import 'package:flutter_application_2/student/apply_scholarship_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class MyApplicationsScreen extends StatefulWidget {
   final String userName;
@@ -34,60 +37,112 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
     final courseController = TextEditingController(text: app['course']);
     final yearLevelController = TextEditingController(text: app['year_level']);
     final gwaController = TextEditingController(text: app['gwa']);
+    
+    final images = <String, dynamic>{'school_id': null, 'id_picture': null, 'birth_cert': null, 'grades': null};
+    final imageBytes = <String, Uint8List?>{'school_id': null, 'id_picture': null, 'birth_cert': null, 'grades': null};
 
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Application'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: studentIdController,
-                decoration: const InputDecoration(labelText: 'Student ID'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: courseController,
-                decoration: const InputDecoration(labelText: 'Course'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: yearLevelController,
-                decoration: const InputDecoration(labelText: 'Year Level'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: gwaController,
-                decoration: const InputDecoration(labelText: 'GWA'),
-                keyboardType: TextInputType.number,
-              ),
-            ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Edit Application'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: studentIdController,
+                  decoration: const InputDecoration(labelText: 'Student ID'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: courseController,
+                  decoration: const InputDecoration(labelText: 'Course'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: yearLevelController,
+                  decoration: const InputDecoration(labelText: 'Year Level'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: gwaController,
+                  decoration: const InputDecoration(labelText: 'GWA'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                const Text('Update Documents (Optional)', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                ...[('school_id', 'School ID'), ('id_picture', 'ID Picture'), ('birth_cert', 'Birth Certificate'), ('grades', 'Grades')].map((doc) => 
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final file = await picker.pickImage(source: ImageSource.gallery);
+                        if (file != null) {
+                          setState(() {
+                            if (kIsWeb) {
+                              file.readAsBytes().then((bytes) => setState(() => imageBytes[doc.$1] = bytes));
+                            } else {
+                              images[doc.$1] = File(file.path);
+                            }
+                          });
+                        }
+                      },
+                      icon: Icon(images[doc.$1] != null || imageBytes[doc.$1] != null ? Icons.check_circle : Icons.upload_file, size: 16),
+                      label: Text(doc.$2),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: images[doc.$1] != null || imageBytes[doc.$1] != null ? Colors.green : const Color(0xFF667EEA),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF667EEA)),
+              child: const Text('Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF667EEA)),
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
 
     if (result == true) {
       try {
-        await Supabase.instance.client.from('application').update({
+        final updateData = {
           'student_id': studentIdController.text,
           'course': courseController.text,
           'year_level': yearLevelController.text,
           'gwa': double.tryParse(gwaController.text),
-        }).eq('application_id', app['application_id']);
+        };
+
+        // Upload new documents if selected
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final studentId = studentIdController.text.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+        
+        for (var entry in images.entries) {
+          if (entry.value != null || imageBytes[entry.key] != null) {
+            final path = '$studentId/${entry.key}_$timestamp.jpg';
+            if (kIsWeb && imageBytes[entry.key] != null) {
+              await Supabase.instance.client.storage.from('scholarship_bucket').uploadBinary(path, imageBytes[entry.key]!);
+            } else if (entry.value != null) {
+              await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, entry.value);
+            }
+            final url = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
+            updateData['${entry.key}_path'] = url;
+          }
+        }
+
+        await Supabase.instance.client.from('application').update(updateData).eq('application_id', app['application_id']);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
