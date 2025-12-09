@@ -186,7 +186,12 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
                   margin: const EdgeInsets.all(12),
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      await Supabase.instance.client.auth.signOut();
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacementNamed('/');
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
                       padding: const EdgeInsets.symmetric(vertical: 16),
