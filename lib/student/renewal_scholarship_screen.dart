@@ -229,7 +229,7 @@ class _RenewScholarshipScreenState extends State<RenewScholarshipScreen> {
         'gwa': double.tryParse(_controllers['gwa']!.text),
         'reason': _controllers['reason']!.text,
         'status': 'pending',
-      })
+      });
       
       if (!mounted) return;
       setState(() => _isSubmitting = false);
