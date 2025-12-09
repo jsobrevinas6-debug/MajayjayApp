@@ -212,30 +212,26 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
 
   int get _totalPages => (_filteredApplications.length / _rowsPerPage).ceil();
 
-  int get _totalCount {
-    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') return _renewals.length;
-    return _applications.length;
+  Future<int> get _totalCount async {
+    final appsResponse = await Supabase.instance.client.from('application').select().eq('archived', false);
+    final renewalsResponse = await Supabase.instance.client.from('renew').select().eq('archived', false);
+    return appsResponse.length + renewalsResponse.length;
   }
   
-  int get _approvedCount {
-    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
-      return _renewals.where((app) => app['status'] == 'Approved').length;
-    }
-    return _applications.where((app) => app['status'] == 'Approved').length;
+  Future<int> get _activeApplicationsCount async {
+    final response = await Supabase.instance.client.from('application').select().eq('archived', false);
+    return response.length;
   }
   
-  int get _pendingCount {
-    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
-      return _renewals.where((app) => app['status'] == 'Pending').length;
-    }
-    return _applications.where((app) => app['status'] == 'Pending').length;
+  Future<int> get _renewalApplicationsCount async {
+    final response = await Supabase.instance.client.from('renew').select().eq('archived', false);
+    return response.length;
   }
   
-  int get _rejectedCount {
-    if (_selectedTab == 'Renewal Applications' || _selectedTab == 'Archived Renewals') {
-      return _renewals.where((app) => app['status'] == 'Rejected').length;
-    }
-    return _applications.where((app) => app['status'] == 'Rejected').length;
+  Future<int> get _archivedCount async {
+    final appsResponse = await Supabase.instance.client.from('application').select().eq('archived', true);
+    final renewalsResponse = await Supabase.instance.client.from('renew').select().eq('archived', true);
+    return appsResponse.length + renewalsResponse.length;
   }
 
   @override
@@ -336,18 +332,18 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
   Widget _buildStatsCards() {
     return Row(
       children: [
-        Expanded(child: _buildStatCard(_totalCount.toString(), 'Total', Colors.blue)),
+        Expanded(child: _buildStatCardAsync(_totalCount, 'Total', Colors.blue)),
         const SizedBox(width: 16),
-        Expanded(child: _buildStatCard(_approvedCount.toString(), 'Approved', Colors.green)),
+        Expanded(child: _buildStatCardAsync(_activeApplicationsCount, 'Active Applications', Colors.green)),
         const SizedBox(width: 16),
-        Expanded(child: _buildStatCard(_pendingCount.toString(), 'Pending', Colors.orange)),
+        Expanded(child: _buildStatCardAsync(_renewalApplicationsCount, 'Renewal Applications', const Color(0xFF7C3AED))),
         const SizedBox(width: 16),
-        Expanded(child: _buildStatCard(_rejectedCount.toString(), 'Rejected', Colors.red)),
+        Expanded(child: _buildStatCardAsync(_archivedCount, 'Archived Applications', Colors.red)),
       ],
     );
   }
 
-  Widget _buildStatCard(String number, String label, Color color) {
+  Widget _buildStatCardAsync(Future<int> countFuture, String label, Color color) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -357,18 +353,24 @@ class _ScholarRecordsScreenState extends State<ScholarRecordsScreen> {
           BoxShadow(color: Colors.grey.shade200, blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
-      child: Column(
-        children: [
-          Text(
-            number,
-            style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: color),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-          ),
-        ],
+      child: FutureBuilder<int>(
+        future: countFuture,
+        builder: (context, snapshot) {
+          return Column(
+            children: [
+              Text(
+                snapshot.hasData ? snapshot.data.toString() : '0',
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: color),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
