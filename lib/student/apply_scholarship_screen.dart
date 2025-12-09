@@ -464,9 +464,9 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
                     const SizedBox(height: 20),
                     _buildSectionTitle('👤 Personal Information'),
                     const SizedBox(height: 12),
-                    _buildTextField('firstName', 'First Name *', 'Juan'),
-                    _buildTextField('middleName', 'Middle Name', 'Santos', required: false),
-                    _buildTextField('surname', 'Last Name *', 'Dela Cruz'),
+                    _buildTextField('firstName', 'First Name *', 'Juan', enabled: false),
+                    _buildTextField('middleName', 'Middle Name', 'Santos', required: false, enabled: false),
+                    _buildTextField('surname', 'Last Name *', 'Dela Cruz', enabled: false),
                     _buildTextField('studentId', 'Student ID *', '2024-12345'),
                     _buildTextField('contact', 'Contact Number *', '09171234567', keyboardType: TextInputType.phone),
                     const SizedBox(height: 16),
@@ -548,20 +548,22 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
 
   Widget _buildSectionTitle(String title) => Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF2D3748)));
 
-  Widget _buildTextField(String key, String label, String hint, {TextInputType? keyboardType, int maxLines = 1, bool required = true}) {
+  Widget _buildTextField(String key, String label, String hint, {TextInputType? keyboardType, int maxLines = 1, bool required = true, bool enabled = true}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: _controllers[key],
         keyboardType: keyboardType,
         maxLines: maxLines,
+        enabled: enabled,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2)),
           focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF667EEA), width: 2)),
+          disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2)),
           filled: true,
-          fillColor: const Color(0xFFF7FAFC),
+          fillColor: enabled ? const Color(0xFFF7FAFC) : const Color(0xFFE2E8F0),
         ),
         validator: required ? (v) => v == null || v.isEmpty ? 'This field is required' : null : null,
       ),
