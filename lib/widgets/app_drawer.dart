@@ -95,7 +95,6 @@ class AppDrawer extends StatelessWidget {
     } else if (userType == 'mayor') {
       return [
         _buildMenuItem(context, '🏛 Mayor Dashboard'),
-        _buildMenuItem(context, '👥 View Scholars'),
         _buildMenuItem(context, '📁 Scholar Records'),
       ];
     } else if (userType == 'admin') {
