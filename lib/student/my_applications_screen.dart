@@ -414,6 +414,26 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               ],
             ),
           ),
+          if (status == 'pending') ..[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Edit feature coming soon. Contact admin for changes.'), backgroundColor: Colors.orange),
+                  );
+                },
+                icon: const Icon(Icons.edit, size: 16),
+                label: const Text('Edit Application'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF667EEA),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
