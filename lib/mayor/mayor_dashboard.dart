@@ -52,13 +52,13 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
   Future<void> _loadRenewalStatus() async {
     try {
       final result = await Supabase.instance.client
-          .from('system_settings')
-          .select('renewal_open')
+          .from('renewal_settings')
+          .select('is_open')
           .eq('id', 1)
           .maybeSingle();
       
       setState(() {
-        _renewalIsOpen = result?['renewal_open'] ?? false;
+        _renewalIsOpen = result?['is_open'] ?? false;
       });
     } catch (e) {
       // Handle error silently
@@ -98,8 +98,8 @@ class _MayorDashboardPageState extends State<MayorDashboardPage> {
       final newStatus = !_renewalIsOpen;
       
       await Supabase.instance.client
-          .from('system_settings')
-          .upsert({'id': 1, 'renewal_open': newStatus, 'updated_at': DateTime.now().toIso8601String()});
+          .from('renewal_settings')
+          .upsert({'id': 1, 'is_open': newStatus, 'updated_at': DateTime.now().toIso8601String()});
       
       setState(() => _renewalIsOpen = newStatus);
       
