@@ -26,6 +26,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
   bool _isLoading = false;
   bool _isEmailVerified = false;
   bool _codeSent = false;
+  String? _emailError;
 
 
 
@@ -135,19 +136,21 @@ class _RegistrationPageState extends State<RegistrationPage> {
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           enabled: !_codeSent,
+          onChanged: _checkEmailExists,
           decoration: InputDecoration(
             labelText: 'Email Address',
             hintText: 'Enter your email',
             prefixIcon: const Icon(Icons.email_rounded, size: 20),
+            errorText: _emailError,
             filled: true,
             fillColor: const Color(0xFFF7FAFC),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
+              borderSide: BorderSide(color: _emailError != null ? Colors.red : const Color(0xFFE2E8F0), width: 2),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFE2E8F0), width: 2),
+              borderSide: BorderSide(color: _emailError != null ? Colors.red : const Color(0xFFE2E8F0), width: 2),
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
@@ -155,13 +158,14 @@ class _RegistrationPageState extends State<RegistrationPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF667EEA), width: 2),
+              borderSide: BorderSide(color: _emailError != null ? Colors.red : const Color(0xFF667EEA), width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) return 'Please enter your email';
             if (!value.contains('@')) return 'Enter a valid email';
+            if (_emailError != null) return _emailError;
             return null;
           },
         ),
@@ -184,7 +188,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
               ],
             ),
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _sendVerificationCode,
+              onPressed: (_isLoading || _emailError != null) ? null : _sendVerificationCode,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
@@ -482,31 +486,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  Future<void> _sendVerificationCode() async {
-    if (_emailController.text.trim().isEmpty || !_emailController.text.contains('@')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid email'), backgroundColor: Colors.red),
-      );
+  Future<void> _checkEmailExists(String email) async {
+    if (email.trim().isEmpty || !email.contains('@')) {
+      setState(() => _emailError = null);
       return;
     }
-    setState(() => _isLoading = true);
+    
     try {
       final existingUser = await supabase
           .from('users')
           .select('email')
-          .eq('email', _emailController.text.trim())
+          .eq('email', email.trim())
           .maybeSingle();
       
-      if (existingUser != null) {
-        setState(() => _isLoading = false);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('The email is already registered'), backgroundColor: Colors.red),
-          );
-        }
-        return;
-      }
+      setState(() {
+        _emailError = existingUser != null ? 'The email is already registered' : null;
+      });
+    } catch (e) {
+      setState(() => _emailError = null);
+    }
+  }
 
+  Future<void> _sendVerificationCode() async {
+    if (_emailError != null) return;
+    
+    setState(() => _isLoading = true);
+    try {
       await supabase.auth.signInWithOtp(
         email: _emailController.text.trim(),
         shouldCreateUser: false,
