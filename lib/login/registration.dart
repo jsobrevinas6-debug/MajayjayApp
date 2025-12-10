@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_2/login/login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
 final supabase = Supabase.instance.client;
 
@@ -27,8 +28,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
   bool _isEmailVerified = false;
   bool _codeSent = false;
   String? _emailError;
+  Timer? _debounceTimer;
 
 
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -486,25 +494,32 @@ class _RegistrationPageState extends State<RegistrationPage> {
     );
   }
 
-  Future<void> _checkEmailExists(String email) async {
-    if (email.trim().isEmpty || !email.contains('@')) {
-      setState(() => _emailError = null);
-      return;
-    }
-    
-    try {
-      final existingUser = await supabase
-          .from('users')
-          .select('email')
-          .eq('email', email.trim())
-          .maybeSingle();
+  void _checkEmailExists(String email) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      if (email.trim().isEmpty || !email.contains('@')) {
+        setState(() => _emailError = null);
+        return;
+      }
       
-      setState(() {
-        _emailError = existingUser != null ? 'The email is already registered' : null;
-      });
-    } catch (e) {
-      setState(() => _emailError = null);
-    }
+      try {
+        print('Checking email: ${email.trim()}');
+        final existingUser = await supabase
+            .from('users')
+            .select('email')
+            .eq('email', email.trim())
+            .maybeSingle();
+        
+        print('Existing user found: ${existingUser != null}');
+        setState(() {
+          _emailError = existingUser != null ? 'The email is already registered' : null;
+        });
+        print('Email error set to: $_emailError');
+      } catch (e) {
+        print('Error checking email: $e');
+        setState(() => _emailError = null);
+      }
+    });
   }
 
   Future<void> _sendVerificationCode() async {
