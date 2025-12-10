@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_2/login/login.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+final supabase = Supabase.instance.client;
+
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
