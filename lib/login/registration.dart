@@ -508,13 +508,33 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> _sendVerificationCode() async {
-    if (_emailError != null) return;
+    if (_emailError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('The email is already registered'), backgroundColor: Colors.red),
+      );
+      return;
+    }
     
     setState(() => _isLoading = true);
     try {
+      // Double check email doesn't exist before sending OTP
+      final existingUser = await supabase
+          .from('users')
+          .select('email')
+          .eq('email', _emailController.text.trim())
+          .maybeSingle();
+      
+      if (existingUser != null) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('The email is already registered'), backgroundColor: Colors.red),
+        );
+        return;
+      }
+
       await supabase.auth.signInWithOtp(
         email: _emailController.text.trim(),
-        shouldCreateUser: false,
+        shouldCreateUser: true,
       );
       setState(() {
         _isLoading = false;
