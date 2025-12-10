@@ -138,14 +138,9 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, entry.value);
             }
             final url = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
-            // Fix column names for different tables
-            if (app['type'] == 'Renewal') {
-              updateData['${entry.key}_path'] = url;
-            } else {
-              // Application table uses different column names
-              final columnName = entry.key == 'birth_cert' ? 'birth_certificate_path' : '${entry.key}_path';
-              updateData[columnName] = url;
-            }
+            // Both tables use same column names with _path suffix
+            final columnName = entry.key == 'birth_cert' ? 'birth_certificate_path' : '${entry.key}_path';
+            updateData[columnName] = url;
           }
         }
 
