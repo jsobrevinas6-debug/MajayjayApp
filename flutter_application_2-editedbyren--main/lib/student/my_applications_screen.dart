@@ -138,23 +138,11 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
               await Supabase.instance.client.storage.from('scholarship_bucket').upload(path, entry.value);
             }
             final url = Supabase.instance.client.storage.from('scholarship_bucket').getPublicUrl(path);
-            // Fix column names for different tables
-            if (app['type'] == 'Renewal') {
-              updateData['${entry.key}_path'] = url;
-            } else {
-              // Application table uses different column names
-              final columnName = entry.key == 'birth_cert' ? 'birth_certificate_path' : '${entry.key}_path';
-              updateData[columnName] = url;
-            }
+            updateData['${entry.key}_path'] = url;
           }
         }
 
-        // Update the correct table based on type
-        if (app['type'] == 'Renewal') {
-          await Supabase.instance.client.from('renew').update(updateData).eq('renewal_id', app['application_id']);
-        } else {
-          await Supabase.instance.client.from('application').update(updateData).eq('application_id', app['application_id']);
-        }
+        await Supabase.instance.client.from('application').update(updateData).eq('application_id', app['application_id']);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
