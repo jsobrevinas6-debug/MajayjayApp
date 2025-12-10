@@ -523,44 +523,48 @@ class _RegistrationPageState extends State<RegistrationPage> {
   }
 
   Future<void> _sendVerificationCode() async {
-    if (_emailError != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('The email is already registered'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-    
     setState(() => _isLoading = true);
+    
     try {
-      // Double check email doesn't exist before sending OTP
+      print('Button pressed - checking email: ${_emailController.text.trim()}');
+      
+      // Check if email exists in database
       final existingUser = await supabase
           .from('users')
           .select('email')
           .eq('email', _emailController.text.trim())
           .maybeSingle();
       
+      print('Existing user check result: ${existingUser != null}');
+      
       if (existingUser != null) {
         setState(() => _isLoading = false);
+        print('Email exists - showing error message');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('The email is already registered'), backgroundColor: Colors.red),
         );
         return;
       }
 
+      print('Email not found - sending OTP');
       await supabase.auth.signInWithOtp(
         email: _emailController.text.trim(),
         shouldCreateUser: true,
       );
+      
       setState(() {
         _isLoading = false;
         _codeSent = true;
       });
+      
+      print('OTP sent successfully');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Verification code sent! Check your email.'), backgroundColor: Colors.green),
         );
       }
     } catch (error) {
+      print('Error in _sendVerificationCode: $error');
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
