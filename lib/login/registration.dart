@@ -509,7 +509,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
 
       await supabase.auth.signInWithOtp(
         email: _emailController.text.trim(),
-        shouldCreateUser: true,
+        shouldCreateUser: false,
       );
       setState(() {
         _isLoading = false;
