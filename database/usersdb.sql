@@ -428,3 +428,6 @@ USING (bucket_id = 'scholarship_bucket')
 WITH CHECK (bucket_id = 'scholarship_bucket');
 
 ALTER TABLE application DROP CONSTRAINT application_student_id_key;
+
+DELETE FROM renew;
+ALTER SEQUENCE renew_renewal_id_seq RESTART WITH 1;
