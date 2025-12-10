@@ -38,8 +38,8 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
     final yearLevelController = TextEditingController(text: app['year_level']);
     final gwaController = TextEditingController(text: app['gwa']);
     
-    final images = <String, dynamic>{'school_id': null, 'id_picture': null, 'birth_cert': null, 'grades': null};
-    final imageBytes = <String, Uint8List?>{'school_id': null, 'id_picture': null, 'birth_cert': null, 'grades': null};
+    final images = <String, dynamic>{'school_id': null, 'id_picture': null, 'birth_cert': null, 'grades': null, 'cor': null};
+    final imageBytes = <String, Uint8List?>{'school_id': null, 'id_picture': null, 'birth_cert': null, 'grades': null, 'cor': null};
 
     final result = await showDialog<bool>(
       context: context,
@@ -73,7 +73,11 @@ class _MyApplicationsScreenState extends State<MyApplicationsScreen> {
                 const SizedBox(height: 16),
                 const Text('Update Documents (Optional)', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
-                ...[('school_id', 'School ID'), ('id_picture', 'ID Picture'), ('birth_cert', 'Birth Certificate'), ('grades', 'Grades')].map((doc) => 
+                ...(() {
+                  final docs = [('school_id', 'School ID'), ('id_picture', 'ID Picture'), ('birth_cert', 'Birth Certificate'), ('grades', 'Grades')];
+                  if (app['type'] == 'Renewal') docs.add(('cor', 'COR'));
+                  return docs;
+                }()).map((doc) => 
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: OutlinedButton.icon(
